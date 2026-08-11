@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { navData } from '@/constants/data'
+import { navData } from '@/constants/data/nav'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'

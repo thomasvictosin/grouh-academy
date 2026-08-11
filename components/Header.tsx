@@ -7,11 +7,17 @@ import Nav from "./Nav";
 
 const Header = () => {
   return (
-    <Container>
-      <header className="flex w-full items-center justify-between gap-60 py-2 sm:gap-100 sm:py-3">
+      <header className="flex w-full items-center gap-8 py-2 px-5 sm:gap-24 sm:py-3 sm:px-10 lg:gap-32 lg:px-20">
         <Link href="/" className="inline-flex items-center gap-3">
-          <Image src={logo} alt="Grouh Academy logo" width={98} height={98} />
+          <Image
+            src={logo}
+            alt="Grouh Academy logo"
+            width={98}
+            height={98}
+          />
         </Link>
+
+        <div className="flex-1" />
 
         <div className="flex items-center gap-5 sm:gap-30">
           <Nav />
@@ -35,7 +41,6 @@ const Header = () => {
           </div>
         </div>
       </header>
-    </Container>
   );
 };
 

@@ -8,7 +8,7 @@ export default async function DevelopmentAuthPage() {
   }
 
   const currentRole = await getDevelopmentAuthRole()
-
+  
   return (
     <main className="min-h-screen bg-slate-100 px-6 py-16 text-[#17251c]">
       <div className="mx-auto max-w-2xl rounded-[2rem] bg-white p-8 shadow-[0_24px_70px_rgba(28,29,82,0.16)]">

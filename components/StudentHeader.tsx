@@ -22,8 +22,8 @@ export default function StudentHeader({ name = 'Student' }: { name?: string }) {
           <Image
             src={logo}
             alt="Grouh Academy logo"
-            width={98}
-            height={98}
+            width={104}
+            height={62}
             className="h-10 w-auto sm:h-12"
           />
         </Link>

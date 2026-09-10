@@ -12,8 +12,8 @@ const Header = () => {
           <Image
             src={logo}
             alt="Grouh Academy logo"
-            width={98}
-            height={98}
+            width={104}
+            height={62}
           />
         </Link>
 

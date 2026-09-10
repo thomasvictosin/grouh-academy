@@ -1,0 +1,6 @@
+import AdminShell from '@/components/AdminShell'
+import AdminSettings, { SettingsActions, SettingsField, SettingsSelect, SettingsToggle } from '@/components/AdminSettings'
+
+export default function CertificateSettingsPage() {
+  return <AdminShell workspace="student"><AdminSettings active="certificate-settings" title="Certificate Settings" description="Set the rules and details used when course completion certificates are issued."><form className="pt-5"><div className="grid gap-4 sm:grid-cols-2"><SettingsField label="Issuing Organization" defaultValue="Grouh Academy" /><SettingsField label="Certificate Prefix" defaultValue="GROUH-" /><SettingsSelect label="Certificate Template" defaultValue="Classic Green" options={['Classic Green', 'Modern Blue', 'Minimal White']} /><SettingsSelect label="Minimum Completion" defaultValue="100%" options={['80%', '90%', '100%']} /></div><div className="mt-7 border-t border-slate-200 pt-5"><div className="divide-y divide-slate-100"><SettingsToggle label="Issue certificates automatically" defaultChecked /><SettingsToggle label="Allow students to download certificates" defaultChecked /><SettingsToggle label="Include instructor signature" defaultChecked /></div></div><SettingsActions /></form></AdminSettings></AdminShell>
+}

@@ -1,12 +1,9 @@
 'use client'
 
 import React from 'react'
-import { useRouter } from 'next/navigation'
+import Breadcrumbs from './Breadcrumbs'
 
 const AboutHero = () => {
-  const router = useRouter()
-  const onNavigate = (path: string) => router.push(path === 'home' ? '/' : `/${path}`)
-  
   return (
    <section
       className="relative pt-28 pb-0 overflow-hidden"
@@ -19,13 +16,10 @@ const AboutHero = () => {
         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
       </div>
 
+      <div style={{ position: 'absolute', top: '-100px', left: '50%', transform: 'translateX(-50%)', width: '700px', height: '400px', background: 'radial-gradient(ellipse, rgba(249,115,22,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
+
       <div className="relative max-w-7xl mx-auto px-6 lg:px-8 pb-20 pt-16">
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-2 mb-8 text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
-          <button onClick={() => onNavigate('home')} className="hover:text-white transition-colors">Home</button>
-          <span>/</span>
-          <span style={{ color: '#4db848' }}>About</span>
-        </div>
+        <div className="mb-8"><Breadcrumbs current="About" dark /></div>
 
         <div className="grid lg:grid-cols-2 gap-12 items-end">
           <div>

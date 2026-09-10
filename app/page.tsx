@@ -6,6 +6,7 @@ import InternshipSection from "@/components/InternshipSection";
 import LearningProcess from "@/components/LearningProcess";
 import Testimonials from "@/components/Testimonials";
 import FAQ from "@/components/FAQ";
+import { BookOpen, CheckCircle2, Star } from "lucide-react";
 
 const page = () => {
   return (
@@ -64,7 +65,7 @@ const page = () => {
               >
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-                    ✓
+                    <CheckCircle2 className="h-6 w-6" />
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-emerald-400">98% Success Rate</h3>
@@ -78,7 +79,7 @@ const page = () => {
               >
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
-                    ★
+                    <Star className="h-6 w-6" />
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-white">Expert Mentors</h3>
@@ -92,7 +93,7 @@ const page = () => {
               >
                 <div className="flex items-center gap-4">
                   <div className="inline-flex h-12 w-12 items-center justify-center rounded-3xl bg-[#F0BE43]/10 text-[#F0BE43] text-xl font-semibold">
-                    📚
+                    <BookOpen className="h-6 w-6" />
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-emerald-400">30+ Courses</h3>

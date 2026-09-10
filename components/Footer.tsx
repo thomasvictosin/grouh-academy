@@ -1,4 +1,5 @@
 import React from 'react'
+import Image from 'next/image'
 import logoWhite from '../public/logo-white.png'
 
 const Footer = () => {
@@ -7,7 +8,7 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
           <div className="lg:col-span-1">
-            <img src={logoWhite.src} alt="Grouh Academy" className="h-10 w-auto mb-4 opacity-90" />
+            <Image src={logoWhite} alt="Grouh Academy" className="mb-4 h-10 w-auto opacity-90" />
             <p className="text-white/50 text-sm leading-relaxed max-w-xs">
               A unified platform for learning, internships, and career development across Africa and beyond.
             </p>
@@ -32,7 +33,7 @@ const Footer = () => {
           {[
             {
               heading: 'Platform',
-              links: ['Courses', 'Internship Program', 'Instructor Portal', 'Success Stories', 'Blog'],
+              links: ['Courses', 'Internship Program', 'Instructor Portal', 'Blog'],
             },
             {
               heading: 'Company',
@@ -48,7 +49,7 @@ const Footer = () => {
               <ul className="space-y-3">
                 {col.links.map((link) => (
                   <li key={link}>
-                    <a href="#" className="text-white/40 text-sm hover:text-white/80 transition-colors">
+                    <a href={link === 'Courses' ? '/courses' : link === 'About Us' ? '/about' : link === 'Contact' ? '/contact' : '#'} className="text-white/40 text-sm hover:text-white/80 transition-colors">
                       {link}
                     </a>
                   </li>
@@ -60,7 +61,7 @@ const Footer = () => {
 
         <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-white/30 text-sm">© 2026 Grouh Academy. All rights reserved.</p>
-          <p className="text-white/20 text-sm">Built for Africa's next generation of builders.</p>
+          <p className="text-white/20 text-sm">Built for Africa&apos;s next generation of builders.</p>
         </div>
       </div>
     </footer>

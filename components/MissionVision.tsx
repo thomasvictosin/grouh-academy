@@ -1,4 +1,5 @@
 import React from 'react'
+import { Sparkles } from 'lucide-react'
 
 const MissionVision = () => {
   return (
@@ -62,7 +63,7 @@ const MissionVision = () => {
           <div className="grid lg:grid-cols-[1fr_2fr] gap-10 items-center">
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4 text-xs font-bold tracking-widest uppercase" style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}>
-                ✦ Why We Exist
+                <Sparkles className="h-3.5 w-3.5" /> Why We Exist
               </div>
               <h3 className="text-3xl font-black text-white leading-tight" style={{ fontFamily: 'Fraunces, serif' }}>
                 The problem is real. So is our answer.

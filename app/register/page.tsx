@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Container from "@/components/Container";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Apple } from "lucide-react";
@@ -81,6 +82,16 @@ export default function RegisterPage() {
     setIsSubmitting(false);
   };
 
+  const handleOAuth = async (provider: "google" | "apple" | "facebook") => {
+    setError(null);
+    const supabase = createSupabaseBrowserClient();
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=/student` },
+    });
+    if (oauthError) setError(oauthError.message);
+  };
+
   return (
     <main className="min-h-screen bg-slate-100 text-[#17251c]">
       <section className="relative isolate flex min-h-screen items-center overflow-hidden py-10 sm:py-16">
@@ -97,13 +108,13 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
-                  <button type="button" className="flex items-center justify-center rounded-xl border border-slate-200 bg-white py-3 transition hover:bg-slate-50" aria-label="Continue with Facebook">
+                  <button type="button" onClick={() => handleOAuth("facebook")} className="flex items-center justify-center rounded-xl border border-slate-200 bg-white py-3 transition hover:bg-slate-50" aria-label="Continue with Facebook">
                     <FacebookIcon />
                   </button>
-                  <button type="button" className="flex items-center justify-center rounded-xl border border-slate-200 bg-white py-3 transition hover:bg-slate-50" aria-label="Continue with Google">
+                  <button type="button" onClick={() => handleOAuth("google")} className="flex items-center justify-center rounded-xl border border-slate-200 bg-white py-3 transition hover:bg-slate-50" aria-label="Continue with Google">
                     <GoogleIcon />
                   </button>
-                  <button type="button" className="flex items-center justify-center rounded-xl border border-slate-200 bg-white py-3 text-slate-700 transition hover:bg-slate-50" aria-label="Continue with Apple">
+                  <button type="button" onClick={() => handleOAuth("apple")} className="flex items-center justify-center rounded-xl border border-slate-200 bg-white py-3 text-slate-700 transition hover:bg-slate-50" aria-label="Continue with Apple">
                     <Apple className="h-5 w-5" />
                   </button>
                 </div>
@@ -197,7 +208,7 @@ export default function RegisterPage() {
 
 
                 <p className="mt-8 text-center text-sm text-slate-500">
-                  Already have an account? <a href="/login" className="font-semibold text-[#4d9d39] hover:underline">Log in</a>
+                  Already have an account? <Link href="/login" className="font-semibold text-[#4d9d39] hover:underline">Log in</Link>
                 </p>
               </div>
             </div>

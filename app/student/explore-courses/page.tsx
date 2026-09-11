@@ -1,0 +1,6 @@
+import { BookOpen, Sparkles, Users } from 'lucide-react'
+import CourseCatalog from '@/components/CourseCatalog'
+
+export default function ExploreCoursesPage() {
+  return <div className="space-y-5"><section className="rounded-2xl bg-[#1C1D52] px-6 py-8 text-white shadow-[0_12px_28px_rgba(28,29,82,0.18)] sm:px-8 sm:py-10"><p className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#9be28a]"><Sparkles className="h-4 w-4" />Explore the academy</p><h1 className="mt-3 max-w-2xl text-3xl font-black tracking-tight sm:text-4xl">Find your next skill and build what is next.</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-white/70">Browse practical courses led by working professionals, then preview the learning path before you commit.</p><div className="mt-7 grid gap-4 border-t border-white/15 pt-5 sm:grid-cols-3"><span className="flex items-center gap-2 text-xs"><BookOpen className="h-4 w-4 text-[#9be28a]" />30+ career-ready courses</span><span className="flex items-center gap-2 text-xs"><Users className="h-4 w-4 text-[#f0be43]" />5,000+ active learners</span><span className="flex items-center gap-2 text-xs"><Sparkles className="h-4 w-4 text-[#9be28a]" />4.9 average rating</span></div></section><div className="rounded-2xl bg-[#f7f8fc]"><CourseCatalog /></div></div>
+}

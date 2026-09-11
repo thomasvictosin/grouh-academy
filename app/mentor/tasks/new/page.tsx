@@ -1,9 +1,62 @@
 'use client'
 
-import { ArrowLeft, Check, Plus, Save, Send } from 'lucide-react'
 import Link from 'next/link'
-import { useState } from 'react'
+import { FormEvent, useState } from 'react'
 import { MentorPage } from '@/components/MentorPage'
 
-export default function NewMentorTaskPage() { const [assigned, setAssigned] = useState<string[]>(['Amaka Okafor']); const [saved, setSaved] = useState(false); const interns = ['Amaka Okafor', 'Daniel Mensah', 'Ifeoma Nwosu', 'Tunde Bello']; const toggle = (name: string) => setAssigned((items) => items.includes(name) ? items.filter((item) => item !== name) : [...items, name]); return <MentorPage title="Create Task" description="Create a practical internship task and assign it to one or more supervised interns."><Link href="/mentor/tasks" className="inline-flex items-center gap-2 text-xs font-bold text-[#1C1D52]"><ArrowLeft className="h-4 w-4" />Back to tasks</Link><section className="rounded-2xl bg-white p-5 shadow-sm sm:p-7"><div className="grid gap-4 sm:grid-cols-2"><Field label="Task title" placeholder="Build a responsive dashboard" /><Field label="Due date" placeholder="2026-09-15" type="date" /><label className="block text-xs font-bold text-[#1C1D52]">Course / track<select className="mt-2 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-xs font-normal"><option>Software Development</option><option>Product Design</option><option>Data Analytics</option></select></label><Field label="Estimated effort" placeholder="4-6 hours" /></div><label className="mt-4 block text-xs font-bold text-[#1C1D52]">Instructions<textarea rows={6} placeholder="Describe the task, expected outcome, and submission requirements..." className="mt-2 w-full rounded-lg border border-slate-200 p-3 text-xs font-normal outline-none focus:border-blue-400" /></label><div className="mt-6"><div className="flex items-center justify-between"><div><h2 className="text-sm font-bold text-[#1C1D52]">Assign interns</h2><p className="mt-1 text-[10px] text-slate-500">Choose who should receive this task.</p></div><span className="text-[10px] font-bold text-[#5FBB46]">{assigned.length} selected</span></div><div className="mt-4 grid gap-2 sm:grid-cols-2">{interns.map((intern) => <button type="button" key={intern} onClick={() => toggle(intern)} className={`flex items-center justify-between rounded-lg border p-3 text-left text-xs font-semibold ${assigned.includes(intern) ? 'border-[#5FBB46] bg-[#e8f7eb] text-[#397d3a]' : 'border-slate-200 text-[#1C1D52]'}`}>{intern}{assigned.includes(intern) && <Check className="h-4 w-4" />}</button>)}</div></div><div className="mt-7 flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-5"><button type="button" onClick={() => setSaved(true)} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2.5 text-xs font-bold text-[#1C1D52]"><Save className="h-4 w-4" />Save draft</button><button type="button" className="inline-flex items-center gap-2 rounded-lg bg-[#5FBB46] px-4 py-2.5 text-xs font-bold text-[#14204f]"><Send className="h-4 w-4" />Publish task</button></div>{saved && <p className="mt-3 text-right text-xs font-semibold text-[#397d3a]">Task draft saved.</p>}</section></MentorPage> }
-function Field({ label, placeholder, type = 'text' }: { label: string; placeholder: string; type?: string }) { return <label className="block text-xs font-bold text-[#1C1D52]">{label}<input type={type} placeholder={placeholder} className="mt-2 h-10 w-full rounded-lg border border-slate-200 px-3 text-xs font-normal outline-none focus:border-blue-400" /></label> }
+export default function NewMentorTaskPage() {
+  const [saved, setSaved] = useState(false)
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setSaved(true)
+  }
+
+  return (
+    <MentorPage title="Create task" description="Set up a practical task and assign it to the interns you supervise.">
+      <form onSubmit={handleSubmit} className="max-w-3xl rounded-2xl bg-white p-5 shadow-sm sm:p-6">
+        <div className="grid gap-5 sm:grid-cols-2">
+          <label className="sm:col-span-2">
+            <span className="text-xs font-bold text-[#1C1D52]">Task title</span>
+            <input required name="title" placeholder="e.g. Build a responsive dashboard" className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-blue-500" />
+          </label>
+          <label>
+            <span className="text-xs font-bold text-[#1C1D52]">Task type</span>
+            <select name="type" defaultValue="Individual" className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500">
+              <option>Individual</option>
+              <option>Group</option>
+            </select>
+          </label>
+          <label>
+            <span className="text-xs font-bold text-[#1C1D52]">Due date</span>
+            <input required type="date" name="dueDate" className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-blue-500" />
+          </label>
+          <label>
+            <span className="text-xs font-bold text-[#1C1D52]">Cohort</span>
+            <select name="cohort" defaultValue="Cohort A · Software Development" className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500">
+              <option>Cohort A · Software Development</option>
+              <option>Cohort A · Product Design</option>
+              <option>Cohort B · Software Development</option>
+            </select>
+          </label>
+          <label>
+            <span className="text-xs font-bold text-[#1C1D52]">Assign to</span>
+            <select name="assignees" defaultValue="All supervised interns" className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500">
+              <option>All supervised interns</option>
+              <option>Select interns after creating</option>
+            </select>
+          </label>
+          <label className="sm:col-span-2">
+            <span className="text-xs font-bold text-[#1C1D52]">Instructions</span>
+            <textarea required name="instructions" rows={5} placeholder="Describe the expected outcome and submission requirements." className="mt-2 w-full resize-y rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-blue-500" />
+          </label>
+        </div>
+        {saved && <p className="mt-4 rounded-lg bg-[#e8f7eb] px-3 py-2 text-xs font-semibold text-[#397d3a]" role="status">Task details saved. Assignment workflow is ready to connect.</p>}
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          <button type="submit" className="rounded-lg bg-[#5FBB46] px-4 py-2.5 text-xs font-bold text-[#14204f]">Create task</button>
+          <Link href="/mentor/tasks" className="rounded-lg border border-slate-200 px-4 py-2.5 text-xs font-bold text-[#1C1D52]">Cancel</Link>
+        </div>
+      </form>
+    </MentorPage>
+  )
+}

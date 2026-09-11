@@ -1,27 +1,34 @@
+'use client'
+
 import Image from 'next/image'
+import { Pencil, X } from 'lucide-react'
+import { useState } from 'react'
+
+const initialProfile = { name: 'Aster Seawalker', email: 'aster.seawalker@clarity.edu', phone: '+1 (555) 382-9901', location: 'San Francisco, California', bio: 'Passionate Computer Science undergraduate with a core focus on reactive frontend patterns and robust API architectures. Love solving real-world product design challenges.' }
 
 export default function ProfilePage() {
+  const [profile, setProfile] = useState(initialProfile)
+  const [draft, setDraft] = useState(initialProfile)
+  const [editing, setEditing] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  function saveProfile(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setProfile(draft)
+    setEditing(false)
+    setSaved(true)
+    window.setTimeout(() => setSaved(false), 2500)
+  }
+
   return (
     <div className="space-y-5">
-      <section className="rounded-2xl bg-[#5FBB46] px-6 py-5 text-[#14204f] shadow-[0_12px_28px_rgba(95,187,70,0.18)] sm:px-8 sm:py-6">
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Profile</h1>
-        <p className="mt-2 text-xs text-[#14204f]/75">Customize your learning portal experience, security, notifications, and language.</p>
-      </section>
-
-      <section className="flex flex-col gap-5 rounded-2xl bg-white p-5 shadow-[0_8px_24px_rgba(28,29,82,0.09)] sm:flex-row sm:items-center sm:px-6">
-        <Image src="/avatar-placeholder.png" alt="Aster Seawalker" width={80} height={80} className="h-20 w-20 rounded-full object-cover" />
-        <div className="min-w-0 flex-1"><h2 className="text-xl font-bold text-[#1C1D52]">Aster Seawalker</h2><p className="mt-1 text-xs text-[#5FBB46]">Student · computer_science_bachelors_undergrad</p><p className="mt-1 text-[10px] text-slate-500">San Francisco, California</p></div>
-        <button type="button" className="rounded-lg bg-[#1C1D52] px-4 py-2 text-[10px] font-semibold text-white">Edit Profile</button>
-      </section>
-
-      <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
-        <section className="rounded-2xl bg-white p-5 shadow-[0_8px_24px_rgba(28,29,82,0.09)] sm:p-6"><h2 className="border-b border-slate-200 pb-3 text-sm font-bold text-[#1C1D52]">Personal Information</h2><dl className="mt-4 space-y-3 text-[10px]"><div><dt className="uppercase text-slate-400">Full Name</dt><dd className="mt-1 font-semibold text-[#1C1D52]">Aster Seawalker</dd></div><div><dt className="uppercase text-slate-400">Email Address</dt><dd className="mt-1 font-semibold text-[#1C1D52]">aster.seawalker@clarity.edu</dd></div><div><dt className="uppercase text-slate-400">Phone Number</dt><dd className="mt-1 font-semibold text-[#1C1D52]">+1 (555) 382-9901</dd></div><div><dt className="uppercase text-slate-400">Bio / About</dt><dd className="mt-1 max-w-lg leading-4 text-slate-600">Passionate Computer Science undergraduate with a core focus on reactive frontend patterns and robust API architectures. Love solving real-world product design challenges.</dd></div></dl></section>
-        <section className="rounded-2xl bg-white p-5 shadow-[0_8px_24px_rgba(28,29,82,0.09)] sm:p-6"><h2 className="border-b border-slate-200 pb-3 text-sm font-bold text-[#1C1D52]">Education Details</h2><dl className="mt-4 space-y-3 text-[10px]"><div><dt className="uppercase text-slate-400">Institution</dt><dd className="mt-1 font-semibold text-[#1C1D52]">Clarity Institute of Technology</dd></div><div><dt className="uppercase text-slate-400">Program / Major</dt><dd className="mt-1 font-semibold text-[#1C1D52]">B.S. in Computer Science &amp; Engineering</dd></div><div><dt className="uppercase text-slate-400">Enrollment Date</dt><dd className="mt-1 font-semibold text-[#1C1D52]">September 2024</dd></div><div><dt className="uppercase text-slate-400">Student ID</dt><dd className="mt-1 font-semibold text-[#1C1D52]">CIT-90382–ASEA</dd></div></dl></section>
-      </div>
-
+      <section className="rounded-2xl bg-[#5FBB46] px-6 py-5 text-[#14204f] shadow-[0_12px_28px_rgba(95,187,70,0.18)] sm:px-8 sm:py-6"><h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Profile</h1><p className="mt-2 text-xs text-[#14204f]/75">Keep your learner identity and contact details current.</p></section>
+      <section className="flex flex-col gap-5 rounded-2xl bg-white p-5 shadow-[0_8px_24px_rgba(28,29,82,0.09)] sm:flex-row sm:items-center sm:px-6"><Image src="/avatar-placeholder.png" alt={profile.name} width={80} height={80} className="h-20 w-20 rounded-full object-cover" /><div className="min-w-0 flex-1"><h2 className="text-xl font-bold text-[#1C1D52]">{profile.name}</h2><p className="mt-1 text-xs text-[#5FBB46]">Student · computer_science_bachelors_undergrad</p><p className="mt-1 text-[10px] text-slate-500">{profile.location}</p></div><button type="button" onClick={() => { setDraft(profile); setEditing(true) }} className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#1C1D52] px-4 py-2 text-[10px] font-semibold text-white"><Pencil className="h-3.5 w-3.5" />Edit Profile</button></section>
+      {saved && <p className="rounded-lg bg-emerald-50 px-4 py-3 text-xs font-semibold text-emerald-700" role="status">Profile changes saved.</p>}
+      <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]"><section className="rounded-2xl bg-white p-5 shadow-[0_8px_24px_rgba(28,29,82,0.09)] sm:p-6"><h2 className="border-b border-slate-200 pb-3 text-sm font-bold text-[#1C1D52]">Personal Information</h2><dl className="mt-4 space-y-3 text-[10px]"><div><dt className="uppercase text-slate-400">Full Name</dt><dd className="mt-1 font-semibold text-[#1C1D52]">{profile.name}</dd></div><div><dt className="uppercase text-slate-400">Email Address</dt><dd className="mt-1 font-semibold text-[#1C1D52]">{profile.email}</dd></div><div><dt className="uppercase text-slate-400">Phone Number</dt><dd className="mt-1 font-semibold text-[#1C1D52]">{profile.phone}</dd></div><div><dt className="uppercase text-slate-400">Bio / About</dt><dd className="mt-1 max-w-lg leading-4 text-slate-600">{profile.bio}</dd></div></dl></section><section className="rounded-2xl bg-white p-5 shadow-[0_8px_24px_rgba(28,29,82,0.09)] sm:p-6"><h2 className="border-b border-slate-200 pb-3 text-sm font-bold text-[#1C1D52]">Education Details</h2><dl className="mt-4 space-y-3 text-[10px]"><div><dt className="uppercase text-slate-400">Institution</dt><dd className="mt-1 font-semibold text-[#1C1D52]">Clarity Institute of Technology</dd></div><div><dt className="uppercase text-slate-400">Program / Major</dt><dd className="mt-1 font-semibold text-[#1C1D52]">B.S. in Computer Science &amp; Engineering</dd></div><div><dt className="uppercase text-slate-400">Enrollment Date</dt><dd className="mt-1 font-semibold text-[#1C1D52]">September 2024</dd></div><div><dt className="uppercase text-slate-400">Student ID</dt><dd className="mt-1 font-semibold text-[#1C1D52]">CIT-90382–ASEA</dd></div></dl></section></div>
       <section className="rounded-2xl bg-white p-5 shadow-[0_8px_24px_rgba(28,29,82,0.09)] sm:p-6"><h2 className="border-b border-slate-200 pb-3 text-sm font-bold text-[#1C1D52]">Learning Statistics</h2><div className="mt-3 grid grid-cols-2 divide-x divide-slate-200 sm:grid-cols-4"><div className="py-2 text-center"><strong className="block text-xl text-[#1C1D52]">6</strong><span className="text-[9px] text-slate-500">Active Courses</span></div><div className="py-2 text-center"><strong className="block text-xl text-[#5FBB46]">2</strong><span className="text-[9px] text-slate-500">Completed Courses</span></div><div className="py-2 text-center"><strong className="block text-xl text-blue-500">4</strong><span className="text-[9px] text-slate-500">Certificates Earned</span></div><div className="py-2 text-center"><strong className="block text-xl text-[#1C1D52]">18h 45m</strong><span className="text-[9px] text-slate-500">Total Learning Hours</span></div></div></section>
-
       <section className="rounded-2xl bg-white p-5 shadow-[0_8px_24px_rgba(28,29,82,0.09)] sm:p-6"><h2 className="border-b border-slate-200 pb-3 text-sm font-bold text-[#1C1D52]">Skills &amp; Interests</h2><div className="mt-3 flex flex-wrap gap-2">{['Full-Stack Development', 'UI/UX Architecture', 'React & TypeScript', 'Node.js API', 'Relational Databases', 'Figma', 'Problem Solving', 'Agile Methodologies'].map((skill) => <span key={skill} className="rounded-md bg-blue-100 px-3 py-1.5 text-[9px] font-medium text-[#1C1D52]">{skill}</span>)}</div></section>
+      {editing && <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1C1D52]/50 p-4"><form onSubmit={saveProfile} className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl"><div className="flex items-center justify-between"><h2 className="text-lg font-bold text-[#1C1D52]">Edit profile</h2><button type="button" onClick={() => setEditing(false)} aria-label="Close edit profile"><X className="h-5 w-5 text-slate-500" /></button></div><div className="mt-5 space-y-3"><label className="block text-xs font-semibold text-[#1C1D52]">Full name<input required value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm" /></label><label className="block text-xs font-semibold text-[#1C1D52]">Phone<input value={draft.phone} onChange={(event) => setDraft({ ...draft, phone: event.target.value })} className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm" /></label><label className="block text-xs font-semibold text-[#1C1D52]">Location<input value={draft.location} onChange={(event) => setDraft({ ...draft, location: event.target.value })} className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm" /></label><label className="block text-xs font-semibold text-[#1C1D52]">Bio<textarea value={draft.bio} onChange={(event) => setDraft({ ...draft, bio: event.target.value })} rows={4} className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm" /></label></div><button className="mt-5 rounded-lg bg-[#5FBB46] px-4 py-2.5 text-xs font-bold text-[#14204f]">Save profile</button></form></div>}
     </div>
   )
 }

@@ -1,189 +1,21 @@
-import React from 'react'
-import { BookOpen, Zap, TrendingUp, Clock, Smartphone, Palette, Laptop, Sparkles, Video } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { ArrowRight, BookOpen, Clock3, GraduationCap, Sparkles, TrendingUp } from 'lucide-react'
 
-interface StatCard {
-  icon: React.ReactNode
-  label: string
-  value: string
-}
-
-interface Course {
-  id: string
-  title: string
-  instructor: string
-  lessons: number
-  total: number
-  thumbnail?: React.ReactNode
-  color?: string
-}
-
-interface RecommendedCourse {
-  id: string
-  title: string
-  description: string
-  thumbnail?: string
-}
-
-const sampleCourses: Course[] = [
-  { 
-    id: '1', 
-    title: 'WordPress Development', 
-    instructor: 'Academy', 
-    lessons: 12, 
-    total: 16,
-    color: 'bg-purple-100',
-    thumbnail: <Smartphone className="h-8 w-8" />
-  },
-  { 
-    id: '2', 
-    title: 'Website Design with Figma', 
-    instructor: 'Design Team', 
-    lessons: 12, 
-    total: 16,
-    color: 'bg-pink-100',
-    thumbnail: <Palette className="h-8 w-8" />
-  },
-  { 
-    id: '3', 
-    title: 'Introduction to Github', 
-    instructor: 'Dev Team', 
-    lessons: 12, 
-    total: 16,
-    color: 'bg-blue-100',
-    thumbnail: <Laptop className="h-8 w-8" />
-  },
-  { 
-    id: '4', 
-    title: 'Website Design with Webflow', 
-    instructor: 'Design Team', 
-    lessons: 12, 
-    total: 16,
-    color: 'bg-indigo-100',
-    thumbnail: <Sparkles className="h-8 w-8" />
-  },
+const progressCourses = [
+  { title: 'WordPress Development', instructor: 'Dr. Emmanuel', lessons: 12, total: 16, image: 'https://images.unsplash.com/photo-1547658719-da2b51169166?w=700&h=380&fit=crop&auto=format', slug: 'wordpress-development' },
+  { title: 'Website Design with Figma', instructor: 'Alex Johnson', lessons: 4, total: 16, image: 'https://images.unsplash.com/photo-1559028012-481c04fa702d?w=700&h=380&fit=crop&auto=format', slug: 'website-design-with-figma' },
+  { title: 'Introduction to Github', instructor: 'Sarah Connor', lessons: 8, total: 16, image: 'https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=700&h=380&fit=crop&auto=format', slug: 'introduction-to-github' },
 ]
 
-const recommendedCourses: RecommendedCourse[] = [
-  {
-    id: '1',
-    title: 'Full Stack Development',
-    description: 'Laravel is a PHP based web framework for building high-end',
-  },
-  {
-    id: '2',
-    title: 'Full Stack Development',
-    description: 'Laravel is a PHP based web framework for building high-end',
-  },
-  {
-    id: '3',
-    title: 'Full Stack Development',
-    description: 'Laravel is a PHP based web framework for building high-end',
-  },
+const recommended = [
+  { title: 'Full-Stack Web Development', category: 'Engineering', instructor: 'Emeka Okafor', rating: '4.9', duration: '14 weeks', price: '$149', image: 'https://images.unsplash.com/photo-1617755870291-1f0de453ad30?w=900&h=560&fit=crop&auto=format', slug: 'full-stack-web-development' },
+  { title: 'Data Science & Machine Learning', category: 'Data', instructor: 'Chukwudi Eze', rating: '4.9', duration: '16 weeks', price: '$179', image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=900&h=560&fit=crop&auto=format', slug: 'data-science-&-machine-learning' },
+  { title: 'Product Management Essentials', category: 'Product', instructor: 'Ifeoma Chukwu', rating: '4.7', duration: '7 weeks', price: '$109', image: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=900&h=560&fit=crop&auto=format', slug: 'product-management-essentials' },
 ]
 
-const stats: StatCard[] = [
-  { icon: <BookOpen className="h-6 w-6" />, label: 'Enrolled Courses', value: '6' },
-  { icon: <Zap className="h-6 w-6" />, label: 'Completed Courses', value: '2' },
-  { icon: <TrendingUp className="h-6 w-6" />, label: 'Overall Progress', value: '10%' },
-  { icon: <Clock className="h-6 w-6" />, label: 'Time Spent', value: '18h 45m' },
-]
+const stats = [{ label: 'Enrolled Courses', value: '6', icon: BookOpen, color: 'text-blue-600', bg: 'bg-blue-50' }, { label: 'Completed Courses', value: '2', icon: GraduationCap, color: 'text-[#397d3a]', bg: 'bg-[#e8f7eb]' }, { label: 'Overall Progress', value: '10%', icon: TrendingUp, color: 'text-amber-600', bg: 'bg-amber-50' }, { label: 'Time Spent', value: '18h 45m', icon: Clock3, color: 'text-[#1C1D52]', bg: 'bg-indigo-50' }]
 
 export default function StudentDashboardPage() {
-  return (
-    <div className="space-y-10">
-      {/* Welcome Banner */}
-      <div className="rounded-xl bg-[#5FBB46] p-8 text-white">
-        <h1 className="text-3xl font-bold mb-2">Welcome back, Emmanuel</h1>
-        <p className="text-white/90">Laravel is a PHP based web framework for building high-end</p>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => (
-          <div key={stat.label} className="rounded-lg bg-white p-6 shadow-[0_8px_24px_rgba(28,29,82,0.06)]">
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="text-sm text-gray-500 mb-2">{stat.label}</div>
-                <div className="text-3xl font-bold text-gray-900">{stat.value}</div>
-              </div>
-              <div className="text-gray-400">
-                {stat.icon}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Learning Progress Section */}
-      <div>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Learning Progress</h2>
-          <a href="#" className="text-blue-600 text-sm font-medium hover:underline">View all courses</a>
-        </div>
-
-        <div className="space-y-4">
-          {sampleCourses.map((course) => {
-            const progressPercent = Math.round((course.lessons / course.total) * 100)
-            return (
-              <div key={course.id} className="rounded-lg bg-white p-6 shadow-[0_8px_24px_rgba(28,29,82,0.06)] transition-shadow hover:shadow-md">
-                <div className="flex gap-6">
-                  {/* Thumbnail */}
-                  <div className={`${course.color} rounded-lg w-20 h-20 flex items-center justify-center flex-shrink-0 text-3xl`}>
-                    {course.thumbnail}
-                  </div>
-
-                  {/* Course Info */}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 mb-1">{course.title}</h3>
-                    <p className="text-sm text-gray-500 mb-4">{course.lessons} of {course.total} lessons completed</p>
-                    
-                    {/* Progress Bar */}
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="h-2 rounded-full bg-[#5FBB46] transition-all"
-                        style={{ width: `${progressPercent}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Percentage */}
-                  <div className="flex-shrink-0 text-right">
-                    <div className="text-2xl font-bold text-gray-900">{progressPercent}%</div>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Recommended Courses Section */}
-      <div>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Recommended Courses</h2>
-          <a href="#" className="text-blue-600 text-sm font-medium hover:underline">See More</a>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {recommendedCourses.map((course) => (
-            <div key={course.id} className="overflow-hidden rounded-lg bg-white shadow-[0_8px_24px_rgba(28,29,82,0.06)] transition-shadow hover:shadow-lg">
-              {/* Course Thumbnail */}
-              <div className="bg-gradient-to-br from-indigo-500 to-purple-600 h-40 flex items-center justify-center text-4xl">
-                <Video className="h-10 w-10" />
-              </div>
-
-              {/* Course Info */}
-              <div className="p-6">
-                <h3 className="font-semibold text-gray-900 mb-2">{course.title}</h3>
-                <p className="text-sm text-gray-600 mb-6">{course.description}</p>
-                <button className="w-full bg-indigo-600 text-white py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
-                  Enroll Now
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
+  return <div className="space-y-8"><section className="rounded-2xl bg-[#5FBB46] px-6 py-7 text-[#14204f] shadow-[0_12px_28px_rgba(95,187,70,0.18)] sm:px-8 sm:py-9"><div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#14204f]/65"><Sparkles className="h-4 w-4" />Your learning space</p><h1 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">Welcome back, Emmanuel</h1><p className="mt-2 max-w-xl text-sm text-[#14204f]/75">Keep your momentum going. You are closer to your next milestone than you think.</p></div><Link href="/student/explore-courses" className="inline-flex w-fit items-center gap-2 rounded-lg bg-[#1C1D52] px-4 py-2.5 text-xs font-bold text-white">Explore courses <ArrowRight className="h-4 w-4" /></Link></div></section><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{stats.map(({ label, value, icon: Icon, color, bg }) => <div key={label} className="rounded-2xl bg-white p-5 shadow-[0_8px_24px_rgba(28,29,82,0.07)]"><div className="flex items-start justify-between"><div><p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-500">{label}</p><strong className="mt-3 block text-2xl font-black text-[#1C1D52]">{value}</strong></div><span className={`flex h-10 w-10 items-center justify-center rounded-xl ${bg} ${color}`}><Icon className="h-5 w-5" /></span></div></div>)}</div><section><div className="flex items-end justify-between gap-4"><div><p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#5FBB46]">Keep going</p><h2 className="mt-1 text-2xl font-black text-[#1C1D52]">Learning progress</h2></div><Link href="/student/my-courses" className="text-xs font-bold text-blue-600">View all courses</Link></div><div className="mt-4 grid gap-4 lg:grid-cols-3">{progressCourses.map((course) => { const progress = Math.round((course.lessons / course.total) * 100); return <article key={course.title} className="overflow-hidden rounded-2xl bg-white shadow-[0_8px_24px_rgba(28,29,82,0.08)]"><div className="relative aspect-[2.1/1] overflow-hidden"><Image src={course.image} alt="" fill sizes="(min-width: 1024px) 33vw, 100vw" className="object-cover" /><span className="absolute right-3 top-3 rounded-full bg-[#1C1D52]/85 px-2.5 py-1 text-[10px] font-bold text-white">{progress}%</span></div><div className="p-4"><h3 className="text-sm font-bold text-[#1C1D52]">{course.title}</h3><p className="mt-1 text-[10px] text-slate-500">with {course.instructor}</p><div className="mt-4 flex justify-between text-[10px] text-slate-500"><span>{course.lessons} of {course.total} lessons</span><span className="font-bold text-[#1C1D52]">{progress}% complete</span></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-[#E7EEF8]"><div className="h-full rounded-full bg-[#5FBB46]" style={{ width: `${progress}%` }} /></div><Link href={`/student/my-courses/${course.slug}/learn`} className="mt-4 inline-flex items-center gap-2 text-[10px] font-bold text-[#1C1D52] hover:text-blue-600">Continue learning <ArrowRight className="h-3.5 w-3.5" /></Link></div></article> })}</div></section><section><div className="flex items-end justify-between gap-4"><div><p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#5FBB46]">Curated for you</p><h2 className="mt-1 text-2xl font-black text-[#1C1D52]">Recommended courses</h2></div><Link href="/student/explore-courses" className="text-xs font-bold text-blue-600">See more</Link></div><div className="mt-4 grid gap-5 md:grid-cols-2 xl:grid-cols-3">{recommended.map((course) => <article key={course.title} className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"><div className="relative aspect-[16/9] overflow-hidden"><Image src={course.image} alt="" fill sizes="(min-width: 1280px) 28vw, (min-width: 768px) 50vw, 100vw" className="object-cover transition duration-500 group-hover:scale-105" /><span className="absolute left-3 top-3 rounded-full bg-[#141650]/90 px-2.5 py-1 text-[10px] font-bold text-white">Recommended</span></div><div className="p-4"><p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#4db848]">{course.category}</p><h3 className="mt-2 text-base font-bold leading-snug text-[#1C1D52]">{course.title}</h3><p className="mt-1 text-[10px] text-slate-500">with {course.instructor}</p><div className="mt-4 flex items-center gap-2 text-[10px] text-slate-500"><span className="font-bold text-[#1C1D52]">★ {course.rating}</span><span className="ml-auto">{course.duration}</span></div><div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3"><span className="text-lg font-black text-[#1C1D52]">{course.price}</span><Link href={`/student/my-courses/${course.slug}/preview`} className="inline-flex items-center gap-1.5 rounded-lg bg-[#5FBB46] px-3 py-2 text-[10px] font-bold text-[#14204f]">View course <ArrowRight className="h-3.5 w-3.5" /></Link></div></div></article>)}</div></section></div>
 }

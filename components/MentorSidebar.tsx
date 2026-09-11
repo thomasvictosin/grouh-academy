@@ -15,6 +15,7 @@ const items = [
   { label: 'Notifications', href: '/mentor/notifications', icon: Bell },
   { label: 'Profile', href: '/mentor/profile', icon: UserRound },
   { label: 'Settings', href: '/mentor/settings', icon: Settings },
+  { label: 'Security', href: '/auth/mfa/setup', icon: Settings },
 ]
 
 export default function MentorSidebar({ onNavigate }: { onNavigate?: () => void }) {

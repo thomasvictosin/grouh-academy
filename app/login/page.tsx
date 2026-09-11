@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Container from "@/components/Container";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Apple, Eye, EyeOff } from "lucide-react";
@@ -50,6 +51,12 @@ export default function LoginPage() {
       return;
     }
 
+    const { data: assurance } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (assurance?.currentLevel === "aal1" && assurance.nextLevel === "aal2") {
+      router.replace("/auth/mfa");
+      return;
+    }
+
     try {
       const response = await fetch("/api/auth/redirect", { cache: "no-store" });
 
@@ -71,6 +78,16 @@ export default function LoginPage() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleOAuth = async (provider: "google" | "apple" | "facebook") => {
+    setError(null);
+    const supabase = createSupabaseBrowserClient();
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=/student` },
+    });
+    if (oauthError) setError(oauthError.message);
   };
 
   return (
@@ -104,7 +121,7 @@ export default function LoginPage() {
                   <div>
                     <div className="mb-2 flex items-center justify-between">
                       <label htmlFor="password" className="text-sm font-semibold text-slate-700">Password</label>
-                      <a href="#" className="text-xs font-semibold text-[#4d9d39] hover:underline">Forgot password?</a>
+                      <Link href="/forgot-password" className="text-xs font-semibold text-[#4d9d39] hover:underline">Forgot password?</Link>
                     </div>
                     <div className="relative">
                       <input
@@ -149,18 +166,18 @@ export default function LoginPage() {
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
-                  <button type="button" className="flex items-center justify-center rounded-xl border border-slate-200 bg-white py-3 transition hover:bg-slate-50" aria-label="Continue with Facebook">
+                  <button type="button" onClick={() => handleOAuth("facebook")} className="flex items-center justify-center rounded-xl border border-slate-200 bg-white py-3 transition hover:bg-slate-50" aria-label="Continue with Facebook">
                     <FacebookIcon />
                   </button>
-                  <button type="button" className="flex items-center justify-center rounded-xl border border-slate-200 bg-white py-3 transition hover:bg-slate-50" aria-label="Continue with Google">
+                  <button type="button" onClick={() => handleOAuth("google")} className="flex items-center justify-center rounded-xl border border-slate-200 bg-white py-3 transition hover:bg-slate-50" aria-label="Continue with Google">
                     <GoogleIcon />
                   </button>
-                  <button type="button" className="flex items-center justify-center rounded-xl border border-slate-200 bg-white py-3 text-slate-700 transition hover:bg-slate-50" aria-label="Continue with Apple">
+                  <button type="button" onClick={() => handleOAuth("apple")} className="flex items-center justify-center rounded-xl border border-slate-200 bg-white py-3 text-slate-700 transition hover:bg-slate-50" aria-label="Continue with Apple">
                     <Apple className="h-5 w-5" />
                   </button>
                 </div>
 
-                <p className="mt-8 text-center text-sm text-slate-500">Don't have an account? <a href="#" className="font-semibold text-[#4d9d39] hover:underline">Register now</a></p>
+                <p className="mt-8 text-center text-sm text-slate-500">Don&apos;t have an account? <Link href="/register" className="font-semibold text-[#4d9d39] hover:underline">Register now</Link></p>
               </div>
             </div>
 

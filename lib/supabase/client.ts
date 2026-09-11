@@ -10,14 +10,5 @@ export function createSupabaseBrowserClient() {
     )
   }
 
-  return createBrowserClient(supabaseUrl, supabasePublishableKey, {
-    cookies: {
-      getAll() {
-        return []
-      },
-      setAll() {
-        return
-      },
-    },
-  })
+  return createBrowserClient(supabaseUrl, supabasePublishableKey)
 }

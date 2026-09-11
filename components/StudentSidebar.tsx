@@ -5,8 +5,7 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutGrid,
   Archive,
-  Calendar,
-  BarChart3,
+  Compass,
   Award,
   User,
   Settings,
@@ -17,8 +16,7 @@ import React from 'react'
 const navItems = [
   { label: 'Dashboard', href: '/student', icon: LayoutGrid },
   { label: 'My Courses', href: '/student/my-courses', icon: Archive },
-  { label: 'Library', href: '/student/library', icon: Calendar },
-  { label: 'Store', href: '/student/store', icon: BarChart3 },
+  { label: 'Explore Courses', href: '/student/explore-courses', icon: Compass },
   { label: 'Certificates', href: '/student/certificates', icon: Award },
   { label: 'Settings', href: '/student/settings', icon: Settings },
   { label: 'Profile', href: '/student/profile', icon: User },

@@ -1,7 +1,30 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
+import Link from "next/link";
 import Container from "@/components/Container";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export default function ForgotPasswordPage() {
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setMessage(null);
+    setError(null);
+    const supabase = createSupabaseBrowserClient();
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
+    });
+    if (resetError) {
+      setError(resetError.message);
+      return;
+    }
+    setMessage("Check your email for a secure password reset link.");
+  };
+
   return (
     <main className="min-h-screen bg-slate-100 text-[#17251c]">
       <section className="relative isolate flex min-h-screen items-center overflow-hidden py-10 sm:py-16">
@@ -17,17 +40,19 @@ export default function ForgotPasswordPage() {
                   <p className="mt-3 text-sm leading-6 text-slate-500">Enter your email to receive a one-time password reset code.</p>
                 </div>
 
-                <form className="space-y-5">
+                <form className="space-y-5" onSubmit={handleSubmit}>
                   <div>
                     <label htmlFor="email" className="mb-2 block text-sm font-semibold text-slate-700">Email address</label>
-                    <input id="email" type="email" placeholder="you@example.com" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#5fbb46] focus:bg-white focus:ring-4 focus:ring-[#5fbb46]/15" />
+                    <input id="email" type="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#5fbb46] focus:bg-white focus:ring-4 focus:ring-[#5fbb46]/15" />
                   </div>
 
                   <button type="submit" className="w-full rounded-xl bg-[#1c1d52] px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-[#1c1d52]/20 transition hover:bg-[#292a68] focus:outline-none focus:ring-4 focus:ring-[#1c1d52]/20">Send code</button>
+                  {message && <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{message}</p>}
+                  {error && <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
                 </form>
 
                 <p className="mt-8 text-center text-sm text-slate-500">
-                  Remembered your password? <a href="/login" className="font-semibold text-[#4d9d39] hover:underline">Back to login</a>
+                  Remembered your password? <Link href="/login" className="font-semibold text-[#4d9d39] hover:underline">Back to login</Link>
                 </p>
               </div>
             </div>

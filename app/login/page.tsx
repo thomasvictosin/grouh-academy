@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Container from "@/components/Container";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { getSiteUrl } from "@/lib/site-url";
 import { Apple, Eye, EyeOff } from "lucide-react";
 
 function FacebookIcon() {
@@ -85,7 +86,7 @@ export default function LoginPage() {
     const supabase = createSupabaseBrowserClient();
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: `${window.location.origin}/auth/callback?next=/student` },
+      options: { redirectTo: `${getSiteUrl()}/auth/callback?next=/student` },
     });
     if (oauthError) setError(oauthError.message);
   };

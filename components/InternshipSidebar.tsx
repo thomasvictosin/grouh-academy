@@ -29,7 +29,7 @@ export default function InternshipSidebar({ onNavigate }: { onNavigate?: () => v
         <p className="mt-1 text-xs font-medium text-white/55">Intern</p>
       </div>
 
-      <nav aria-label="Internship dashboard" className="mt-7 flex-1 px-1">
+      <nav aria-label="Internship dashboard" className="mt-7 flex-1 overflow-y-auto px-1">
         <ul className="space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon

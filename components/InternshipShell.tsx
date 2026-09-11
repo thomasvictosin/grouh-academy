@@ -26,7 +26,8 @@ export default function InternshipShell({ children }: { children: React.ReactNod
       return
     }
 
-    setAccessChecked(true)
+    const accessCheck = window.setTimeout(() => setAccessChecked(true), 0)
+    return () => window.clearTimeout(accessCheck)
   }, [isDevelopmentPreview, isEnrollmentRoute, isPaymentRoute, router])
 
   if (!accessChecked) {

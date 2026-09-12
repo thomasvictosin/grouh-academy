@@ -9,8 +9,8 @@ export default function StudentShell({ children }: { children: React.ReactNode }
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <div className="flex h-dvh min-w-0 flex-1 flex-col overflow-hidden bg-[#F0F7FF]">
-      <header className="fixed inset-x-0 top-0 z-30 h-[72px] w-full shrink-0 bg-[#F0F7FF] px-4 py-3 sm:px-6 lg:px-8">
+    <div className="fixed inset-0 z-20 flex flex-col overflow-hidden bg-[#F0F7FF]">
+      <header className="z-30 w-full shrink-0 bg-[#F0F7FF] px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex min-w-0 items-center gap-3">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -25,12 +25,12 @@ export default function StudentShell({ children }: { children: React.ReactNode }
         </div>
       </header>
 
-      <div className="flex min-h-0 min-w-0 flex-1 gap-0 overflow-hidden px-3 pb-3 pt-[80px] sm:gap-5 sm:px-5 sm:pb-4 sm:pt-[72px] lg:gap-6 lg:px-6">
-        <aside className="fixed left-4 top-[72px] z-20 hidden h-[calc(100dvh-88px)] w-[248px] overflow-hidden sm:left-5 lg:left-6 md:flex">
+      <div className="flex min-h-0 flex-1 gap-5 overflow-hidden px-3 pb-3 sm:px-5 lg:gap-6 lg:px-6">
+        <aside className="hidden h-full w-[248px] shrink-0 md:flex">
           <StudentSidebar />
         </aside>
 
-        <main className="min-h-0 min-w-0 w-full flex-1 overflow-x-hidden overflow-y-auto py-2 sm:py-2 md:ml-[268px] lg:ml-[272px]">
+        <main className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto py-2">
           {children}
         </main>
       </div>

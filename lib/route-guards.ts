@@ -2,8 +2,8 @@ import { redirect } from 'next/navigation';
 
 import type { RoleName } from '@/generated/prisma/client';
 import {
+  ensureDevelopmentUser,
   getDevelopmentAuthRole,
-  getDevelopmentRolePermissions,
   isDevelopmentBypassEnabled,
 } from '@/lib/dev-auth';
 import type { PermissionKey } from '@/lib/rbac';
@@ -21,18 +21,31 @@ export async function getCurrentUserId(): Promise<string | null> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.getUser();
 
-  if (error || !data.user) {
-    return null;
+  if (!error && data.user) {
+    try {
+      await ensurePrismaUserForSupabaseAuth(data.user);
+    } catch (syncError) {
+      console.error('Failed to synchronize Supabase auth user with Prisma:', syncError);
+      return null;
+    }
+
+    return data.user.id;
   }
 
-  try {
-    await ensurePrismaUserForSupabaseAuth(data.user);
-  } catch (error) {
-    console.error('Failed to synchronize Supabase auth user with Prisma:', error);
-    return null;
+  // No real Supabase session. Under the development bypass, back the
+  // request with a real placeholder User row (see ensureDevelopmentUser)
+  // rather than a synthetic id, so every downstream query that treats
+  // this id as a real user — RBAC lookups, Course.createdById,
+  // CourseInstructor.instructorId, etc — works without special-casing.
+  if (isDevelopmentBypassEnabled()) {
+    const developmentRole = await getDevelopmentAuthRole();
+
+    if (developmentRole) {
+      return ensureDevelopmentUser(developmentRole);
+    }
   }
 
-  return data.user.id;
+  return null;
 }
 
 export async function requireRouteAccess({
@@ -42,46 +55,25 @@ export async function requireRouteAccess({
 }: RouteAccessOptions = {}): Promise<string> {
   const userId = await getCurrentUserId();
 
-  if (userId) {
-    if (requiredRoles.length > 0) {
-      const hasRole = await userHasRole(userId, requiredRoles);
-
-      if (!hasRole) {
-        redirect(redirectTo);
-      }
-    }
-
-    if (requiredPermissions.length > 0) {
-      const hasPermission = await userHasPermission(userId, requiredPermissions);
-
-      if (!hasPermission) {
-        redirect(redirectTo);
-      }
-    }
-
-    return userId;
+  if (!userId) {
+    redirect(redirectTo);
   }
 
-  const developmentRole = await getDevelopmentAuthRole();
+  if (requiredRoles.length > 0) {
+    const hasRole = await userHasRole(userId, requiredRoles);
 
-  if (isDevelopmentBypassEnabled() && developmentRole) {
-    if (requiredRoles.length > 0 && !requiredRoles.includes(developmentRole)) {
+    if (!hasRole) {
       redirect(redirectTo);
     }
-
-    if (requiredPermissions.length > 0) {
-      const developmentPermissions = await getDevelopmentRolePermissions(developmentRole);
-      const hasPermission = requiredPermissions.some((permission) =>
-        developmentPermissions.includes(permission),
-      );
-
-      if (!hasPermission) {
-        redirect(redirectTo);
-      }
-    }
-
-    return `dev:${developmentRole}`;
   }
 
-  redirect(redirectTo);
+  if (requiredPermissions.length > 0) {
+    const hasPermission = await userHasPermission(userId, requiredPermissions);
+
+    if (!hasPermission) {
+      redirect(redirectTo);
+    }
+  }
+
+  return userId;
 }

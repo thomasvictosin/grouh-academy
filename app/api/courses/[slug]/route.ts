@@ -30,12 +30,25 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   const isInstructor = roles.includes(RoleName.INSTRUCTOR)
   if (!isAdmin && !userOwnsCourse(existing, userId)) return NextResponse.json({ error: 'You cannot edit this course.' }, { status: 403 })
 
-  const body = await request.json() as CourseWriteInput & { status?: CourseStatus }
-  if (body.status === CourseStatus.PUBLISHED && !isAdmin) return NextResponse.json({ error: 'Only an admin can publish a course.' }, { status: 403 })
+  const body = await request.json() as CourseWriteInput & { status?: unknown }
+
+  // Only trust `status` when it is actually one of the known enum values.
+  // Anything else (missing, malformed, or an unexpected type from a
+  // hand-crafted request) is treated as "no status change requested" so
+  // it falls through to nextInstructorCourseStatus's default behavior of
+  // preserving the course's current status.
+  const requestedStatus: CourseStatus | undefined =
+    typeof body.status === 'string' && (Object.values(CourseStatus) as string[]).includes(body.status)
+      ? (body.status as CourseStatus)
+      : undefined
+
+  if (requestedStatus === CourseStatus.PUBLISHED && !isAdmin) {
+    return NextResponse.json({ error: 'Only an admin can publish a course.' }, { status: 403 })
+  }
 
   const prisma = getPrisma()
   const category = body.category !== undefined ? await resolveCourseCategory(prisma, body.category) : undefined
-  const nextStatus = nextInstructorCourseStatus(existing.status, isAdmin, isAdmin ? body.status : undefined)
+  const nextStatus = nextInstructorCourseStatus(existing.status, isAdmin, isAdmin ? requestedStatus : undefined)
 
   const course = await prisma.$transaction(async (tx) => {
     const db = tx as ReturnType<typeof getPrisma>
@@ -51,7 +64,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       },
     })
 
-    if (isInstructor && !userId.startsWith('dev:')) {
+    if (isInstructor) {
       await db.courseInstructor.upsert({
         where: { courseId_instructorId: { courseId: existing.id, instructorId: userId } },
         update: {},

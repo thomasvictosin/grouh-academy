@@ -81,3 +81,58 @@ export async function getDevelopmentRolePermissions(role: DevelopmentRole): Prom
 export function getDevelopmentRouteForRole(role: DevelopmentRole): string {
   return getAuthorizedHomeRouteForRoles([role])
 }
+
+function developmentUserEmail(role: DevelopmentRole): string {
+  return `dev-${role.toLowerCase()}@developer.local`
+}
+
+/**
+ * Returns the id of a real User row backing the given development-bypass
+ * role, creating it (and its Role assignment) on first use.
+ *
+ * This exists so getCurrentUserId() can hand back a genuine UUID under
+ * the dev bypass, instead of a synthetic string like "dev:INSTRUCTOR".
+ * A synthetic id is not a row in the database, so it fails the instant
+ * it's used anywhere a real foreign key is expected (RBAC lookups,
+ * Course.createdById, CourseInstructor.instructorId, etc) — a genuine
+ * placeholder user with a real UserRole avoids that entire category of
+ * bug, since every downstream query just sees a normal user.
+ */
+export async function ensureDevelopmentUser(role: DevelopmentRole): Promise<string> {
+  if (!isDevelopmentBypassEnabled()) {
+    throw new Error('ensureDevelopmentUser() called outside of development bypass mode.')
+  }
+
+  const prisma = getPrismaClient()
+
+  try {
+    const roleRecord = await prisma.role.findUnique({ where: { name: role } })
+
+    if (!roleRecord) {
+      throw new Error(
+        `Development bypass role "${role}" has no matching Role row. Seed the Role table before using DEV_AUTH_BYPASS.`,
+      )
+    }
+
+    const email = developmentUserEmail(role)
+
+    const user = await prisma.user.upsert({
+      where: { email },
+      update: {},
+      create: {
+        email,
+        name: `Dev ${role}`,
+      },
+    })
+
+    await prisma.userRole.upsert({
+      where: { userId_roleId: { userId: user.id, roleId: roleRecord.id } },
+      update: {},
+      create: { userId: user.id, roleId: roleRecord.id },
+    })
+
+    return user.id
+  } finally {
+    await prisma.$disconnect()
+  }
+}

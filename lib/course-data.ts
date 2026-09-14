@@ -5,7 +5,7 @@ export const courseInclude = {
   category: true,
   creator: { select: { id: true, name: true, email: true } },
   instructors: { include: { instructor: { select: { id: true, name: true, email: true } } } },
-  modules: { orderBy: { order: 'asc' as const }, include: { lessons: { orderBy: { order: 'asc' as const }, include: { resources: true } } } },
+  modules: { orderBy: { order: 'asc' as const }, include: { lessons: { orderBy: { order: 'asc' as const }, include: { resources: true } }, resources: true } },
   reviews: { select: { rating: true } },
   _count: { select: { enrollments: true, reviews: true, modules: true } },
 } as const
@@ -23,6 +23,9 @@ export type CourseModuleInput = {
   id?: string
   title: string
   description?: string | null
+  videoUrl?: string | null
+  content?: string | null
+  resources?: Array<{ id?: string; title: string; type: string; url: string }>
   lessons?: CourseLessonInput[]
 }
 
@@ -63,6 +66,49 @@ export function serializeCourse(course: Awaited<ReturnType<typeof getCourseBySlu
   return { ...course, lessonCount: lessons, rating }
 }
 
+/**
+ * The exact shape returned to the client by every course API route
+ * (GET /api/courses, GET /api/courses/[slug], POST /api/courses,
+ * PATCH /api/courses/[slug]), derived directly from serializeCourse()
+ * rather than hand-typed.
+ *
+ * Frontend components should import this instead of declaring their own
+ * local `type Course = {...}` / `type SavedCourse = {...}`. A hand-typed
+ * guess is what caused the category-shape bug in CourseCatalog.tsx:
+ * `category` here is the full CourseCategory relation object
+ * ({ id, name, slug, description, ... } | null), not a plain string,
+ * because courseInclude joins the relation rather than flattening it.
+ * If this shape ever changes, every importer gets a compile error at
+ * the exact mismatched usage instead of a runtime surprise.
+ */
+export type PublicCourse = NonNullable<ReturnType<typeof serializeCourse>>
+
+/**
+ * Shape returned by GET /api/student/dashboard. Kept next to PublicCourse
+ * for the same reason: the client page imports this type instead of
+ * hand-typing its own guess at the response shape.
+ */
+export type DashboardStats = {
+  enrolledCourses: number
+  completedCourses: number
+  overallProgressPercent: number
+}
+
+export type DashboardCourseProgress = {
+  slug: string
+  title: string
+  thumbnail: string | null
+  completedLessons: number
+  totalLessons: number
+  progressPercent: number
+}
+
+export type StudentDashboardResponse = {
+  stats: DashboardStats
+  inProgress: DashboardCourseProgress[]
+  recommended: PublicCourse[]
+}
+
 export function userOwnsCourse(course: Pick<ExistingCourse, 'createdById' | 'instructors'>, userId: string) {
   return course.createdById === userId || course.instructors.some((item) => item.instructorId === userId)
 }
@@ -77,7 +123,9 @@ export async function resolveCourseCategory(db: CourseDb, name?: string | null) 
   })
 }
 
-function resourceCreateData(resources: CourseLessonInput['resources']) {
+type CourseResourceInput = Array<{ id?: string; title: string; type: string; url: string }> | undefined
+
+function resourceCreateData(resources: CourseResourceInput) {
   return (resources ?? []).map((resource) => ({
     title: resource.title || resource.url,
     type: resource.type || 'link',
@@ -89,7 +137,10 @@ export function moduleCreateData(modules: CourseModuleInput[]) {
   return modules.map((module, moduleIndex) => ({
     title: module.title,
     description: module.description ?? null,
+    videoUrl: module.videoUrl ?? null,
+    content: module.content ?? null,
     order: moduleIndex,
+    resources: { create: resourceCreateData(module.resources) },
     lessons: {
       create: (module.lessons ?? []).map((lesson, lessonIndex) => ({
         title: lesson.title,
@@ -122,6 +173,29 @@ async function syncLessonResources(
       await db.lessonResource.update({ where: { id: resource.id }, data })
     } else {
       await db.lessonResource.create({ data: { ...data, lessonId } })
+    }
+  }
+}
+
+async function syncModuleResources(
+  db: CourseDb,
+  moduleId: string,
+  incoming: NonNullable<CourseModuleInput['resources']>,
+  existing: Array<{ id: string }>,
+) {
+  const existingById = new Map(existing.map((resource) => [resource.id, resource]))
+  const keptIds = incoming.map((resource) => resource.id).filter((id): id is string => Boolean(id && existingById.has(id)))
+
+  await db.moduleResource.deleteMany({
+    where: { moduleId, ...(keptIds.length ? { id: { notIn: keptIds } } : {}) },
+  })
+
+  for (const resource of incoming) {
+    const data = { title: resource.title || resource.url, type: resource.type || 'link', url: resource.url }
+    if (resource.id && existingById.has(resource.id)) {
+      await db.moduleResource.update({ where: { id: resource.id }, data })
+    } else {
+      await db.moduleResource.create({ data: { ...data, moduleId } })
     }
   }
 }
@@ -185,9 +259,12 @@ export async function syncCourseCurriculum(db: CourseDb, courseId: string, incom
         data: {
           title: module.title,
           description: module.description ?? null,
+          videoUrl: module.videoUrl ?? null,
+          content: module.content ?? null,
           order: moduleIndex,
         },
       })
+      await syncModuleResources(db, existingModule.id, module.resources ?? [], existingModule.resources)
       await syncLessons(db, existingModule.id, module.lessons ?? [], existingModule.lessons)
     } else {
       await db.courseModule.create({
@@ -195,7 +272,10 @@ export async function syncCourseCurriculum(db: CourseDb, courseId: string, incom
           courseId,
           title: module.title,
           description: module.description ?? null,
+          videoUrl: module.videoUrl ?? null,
+          content: module.content ?? null,
           order: moduleIndex,
+          resources: { create: resourceCreateData(module.resources) },
           lessons: {
             create: (module.lessons ?? []).map((lesson, lessonIndex) => ({
               title: lesson.title,

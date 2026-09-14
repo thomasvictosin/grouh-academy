@@ -6,6 +6,16 @@ import { getPrisma } from '@/lib/prisma'
 
 export default async function MyCoursesPage() {
   const userId = await getCurrentUserId()
-  const enrollments = userId && !userId.startsWith('dev:') ? await getPrisma().enrollment.findMany({ where: { userId, status: { in: ['ACTIVE', 'COMPLETED'] } }, include: { course: { include: { instructors: { include: { instructor: true } }, modules: { include: { lessons: true } } } }, }, orderBy: { updatedAt: 'desc' } }) : []
+  const enrollments = userId
+    ? await getPrisma().enrollment.findMany({
+        where: { userId, status: { in: ['ACTIVE', 'COMPLETED'] } },
+        include: {
+          course: {
+            include: { instructors: { include: { instructor: true } }, modules: { include: { lessons: true } } },
+          },
+        },
+        orderBy: { updatedAt: 'desc' },
+      })
+    : []
   return <div className="w-full max-w-full space-y-6 overflow-x-hidden"><section className="rounded-2xl bg-[#5FBB46] px-6 py-6 text-white shadow-[0_12px_28px_rgba(95,187,70,0.18)] sm:px-8 sm:py-7"><h1 className="text-3xl font-bold tracking-tight">My Courses</h1><p className="mt-2 text-sm text-white/85">Continue the courses you are enrolled in.</p></section><section><div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{enrollments.map(({ course }) => { const lessons = course.modules.flatMap((module) => module.lessons); return <article key={course.id} className="overflow-hidden rounded-xl bg-white p-2 shadow-[0_8px_24px_rgba(28,29,82,0.09)]"><div className="relative aspect-[2.1/1] overflow-hidden rounded-lg bg-[linear-gradient(135deg,#1c1d52,#5fbb46)]">{course.thumbnail && <Image src={course.thumbnail} alt="" fill className="object-cover" />}</div><div className="px-2 pb-2 pt-3"><Link href={`/student/my-courses/${course.slug}/preview`} className="block text-sm font-bold text-[#1C1D52]">{course.title}</Link><p className="mt-1 text-[11px] text-slate-500">Instructor: {course.instructors[0]?.instructor.name ?? 'Grouh Academy'}</p><div className="mt-4 flex items-center justify-between text-[10px] text-slate-500"><span>{lessons.length} lessons</span><span className="font-bold text-[#1C1D52]">{course.status}</span></div><Link href={`/student/my-courses/${course.slug}/learn`} className="mt-3 flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-[#1C1D52] text-xs font-semibold text-white">{course.status === 'PUBLISHED' ? <BookOpen className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />}Open course</Link></div></article> })}</div>{enrollments.length === 0 && <div className="rounded-2xl bg-white px-6 py-16 text-center shadow-sm"><h2 className="text-lg font-bold text-[#1C1D52]">No enrolled courses yet</h2><p className="mt-2 text-sm text-slate-500">Explore the catalogue and enroll in your next course.</p><Link href="/student/explore-courses" className="mt-5 inline-flex rounded-lg bg-[#5FBB46] px-4 py-2.5 text-xs font-bold text-[#14204f]">Explore courses</Link></div>}</section></div>
 }

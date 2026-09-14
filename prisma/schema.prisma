@@ -118,6 +118,35 @@ enum AuditActionType {
   PAYMENT_UPDATED
 }
 
+enum ThemeMode {
+  LIGHT
+  DARK
+}
+
+model UserSettings {
+  id     String @id @default(cuid())
+  userId String @unique @db.Uuid
+
+  profileVisible    Boolean @default(true)
+  showLearningStats Boolean @default(false)
+
+  emailNotifications  Boolean @default(true)
+  pushNotifications   Boolean @default(true)
+  courseUpdates       Boolean @default(true)
+  assignmentReminders Boolean @default(false)
+  gradeNotifications  Boolean @default(true)
+  mentorshipMessages  Boolean @default(false)
+
+  theme    ThemeMode @default(LIGHT)
+  language String    @default("English (US)")
+  timezone String    @default("GMT+1 (West Africa Time)")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 model User {
   id        String     @id @default(uuid()) @db.Uuid
   email     String     @unique
@@ -130,6 +159,8 @@ model User {
 
   profile Profile?
   roles   UserRole[]
+
+  settings UserSettings?
 
   instructorProfile InstructorProfile?
   mentorProfile     MentorProfile?

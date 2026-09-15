@@ -1,47 +1,183 @@
-'use client'
+import { NextResponse } from 'next/server'
+import { getCurrentUserId } from '@/lib/route-guards'
+import { getPrisma } from '@/lib/prisma'
+import { CourseStatus } from '@/generated/prisma/client'
+import { courseInclude, serializeCourse } from '@/lib/course-data'
 
-import { Activity, Bell, CheckCircle2, ChevronRight, Clock3, Trophy } from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { useEffect, useState } from 'react'
-import InternshipShell from '@/components/InternshipShell'
-import { defaultInternshipState, internshipPrograms, internshipStorageKey } from '@/lib/internship'
+function parseDurationWeeks(duration: string): number {
+  const match = duration.match(/\d+/)
+  return match ? Number(match[0]) : 12
+}
 
-const recommended = [
-  { title: 'Full Stack Development', image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=700&h=380&fit=crop&auto=format' },
-  { title: 'Product Design Systems', image: 'https://images.unsplash.com/photo-1559028012-481c04fa702d?w=700&h=380&fit=crop&auto=format' },
-  { title: 'Modern Data Workflows', image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=700&h=380&fit=crop&auto=format' },
-]
+function formatDate(date: Date): string {
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
 
-export default function InternshipDashboardPage() {
-  const [state, setState] = useState(defaultInternshipState)
-  useEffect(() => { const saved = window.localStorage.getItem(internshipStorageKey); if (saved) setState({ ...defaultInternshipState, ...JSON.parse(saved) }) }, [])
-  const program = internshipPrograms.find((item) => item.slug === state.programSlug)
-  const assessmentLabel = state.assessmentStatus === 'UNDER_REVIEW' ? 'Submitted · Under review' : state.assessmentStatus === 'OBJECTIVE_SUBMITTED' ? 'Theory in progress' : state.assessmentStatus === 'IN_PROGRESS' ? 'In progress' : state.paymentStatus === 'PAID' ? 'Not started' : 'Locked / pending'
-  return (
-    <InternshipShell>
-      <div className="space-y-5">
-        {program ? <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_8px_24px_rgba(28,29,82,0.09)] sm:p-6"><div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#5FBB46]">{program.name}</p><h1 className="mt-2 text-lg font-bold text-[#1C1D52]">Your internship application</h1><p className="mt-1 text-xs text-slate-500">Payment: <strong className={state.paymentStatus === 'PAID' ? 'text-[#5FBB46]' : 'text-amber-600'}>{state.paymentStatus === 'PAID' ? 'Paid' : 'Pending'}</strong> · Assessment: <strong className="text-[#1C1D52]">{assessmentLabel}</strong></p></div>{state.paymentStatus !== 'PAID' ? <Link href="/internship/payment" className="rounded-lg bg-[#5FBB46] px-4 py-2.5 text-center text-xs font-bold text-[#14204f]">Complete payment</Link> : state.assessmentStatus !== 'UNDER_REVIEW' ? <Link href="/internship/assessment/readiness" className="rounded-lg bg-[#5FBB46] px-4 py-2.5 text-center text-xs font-bold text-[#14204f]">{state.assessmentStatus === 'IN_PROGRESS' ? 'Continue assessment' : 'Start assessment'}</Link> : <span className="rounded-lg bg-[#e8f7eb] px-4 py-2.5 text-center text-xs font-bold text-[#397d3a]">Outcome under review</span>}</div></section> : <section className="rounded-2xl bg-[#1C1D52] p-6 text-white"><h1 className="text-xl font-bold">Start your internship journey</h1><p className="mt-2 text-xs text-white/70">Choose an internship plan to begin your application.</p><Link href="/internship/enroll" className="mt-4 inline-flex rounded-lg bg-[#5FBB46] px-4 py-2.5 text-xs font-bold text-[#14204f]">View internship plans</Link></section>}
-        <section className="rounded-2xl bg-white p-5 shadow-[0_8px_24px_rgba(28,29,82,0.09)] sm:p-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-xs font-bold text-[#5FBB46]">Software Development · Intermediate</p><p className="mt-3 text-xs text-slate-500">Week 4 of 12 · Start Date: Aug 17, 2026 · Expected Completion: Nov 9, 2026</p></div><span className="text-xs font-bold text-[#5FBB46]">33%</span></div>
-          <div className="mt-4"><div className="flex items-center justify-between text-xs font-bold text-[#1C1D52]"><span>Progress</span></div><div className="mt-2 h-1.5 rounded-full bg-[#E7EEF8]"><div className="h-full w-1/3 rounded-full bg-[#5FBB46]" /></div></div>
-        </section>
+function timeAgoLabel(date: Date): string {
+  const diffMs = Date.now() - date.getTime()
+  const hours = Math.floor(diffMs / (1000 * 60 * 60))
+  if (hours < 1) return 'Just now'
+  if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`
+  const days = Math.floor(hours / 24)
+  if (days === 1) return 'Yesterday'
+  return `${days} days ago`
+}
 
-        <section className="grid gap-4 sm:grid-cols-3">
-          {[{ label: 'Completed tasks', value: '12', icon: CheckCircle2 }, { label: 'Average grade', value: '84%', icon: Trophy }, { label: 'Pending tasks', value: '2', icon: Activity }].map(({ label, value, icon: Icon }) => <div key={label} className="rounded-2xl bg-white p-5 shadow-[0_8px_24px_rgba(28,29,82,0.09)]"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#e8f7eb] text-[#5FBB46]"><Icon className="h-4 w-4" /></span><strong className="mt-3 block text-xl text-[#1C1D52]">{value}</strong><span className="mt-1 block text-xs text-slate-500">{label}</span></div>)}
-        </section>
+export async function GET() {
+  const userId = await getCurrentUserId()
+  if (!userId) {
+    return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
+  }
 
-        <section className="rounded-2xl bg-[#5FBB46] p-5 text-white shadow-[0_12px_28px_rgba(95,187,70,0.18)] sm:p-6"><h1 className="text-xl font-bold">Week 4 - Frontend Development</h1><p className="mt-2 text-xs text-white/80">Build a responsive dashboard using React and TypeScript.</p><div className="mt-4 flex flex-wrap gap-4 text-xs text-white/90"><span className="flex items-center gap-1"><Clock3 className="h-3.5 w-3.5" />Due: Tomorrow, 11:59 PM</span><span className="flex items-center gap-1"><Activity className="h-3.5 w-3.5" />In Progress</span></div></section>
+  const prisma = getPrisma()
 
-        <section className="flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-[0_8px_24px_rgba(28,29,82,0.09)] sm:flex-row sm:items-center sm:justify-between sm:p-6"><div className="flex items-center gap-3"><div className="h-11 w-11 rounded-full bg-slate-200" /><div><h2 className="text-sm font-bold text-[#1C1D52]">Your Mentor</h2><p className="mt-1 text-xs text-slate-500">John Doe · Senior Software Engineer</p><p className="mt-1 text-xs font-semibold text-[#5FBB46]">● Available</p><p className="mt-1 text-[10px] text-slate-500">Next meeting: Thursday, Sep 10 · 4:00 PM</p></div></div><div className="flex gap-2 sm:flex-col"><button type="button" className="rounded-lg bg-[#5FBB46] px-4 py-2 text-xs font-semibold text-white">Message Mentor</button><button type="button" className="rounded-lg px-4 py-2 text-xs font-semibold text-[#5FBB46] shadow-[inset_0_0_0_1px_#5FBB46]">View Profile</button></div></section>
-          <section className="flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-[0_8px_24px_rgba(28,29,82,0.09)] sm:flex-row sm:items-center sm:justify-between sm:p-6"><div className="flex items-center gap-3"><div className="h-11 w-11 rounded-full bg-slate-200" /><div><h2 className="text-sm font-bold text-[#1C1D52]">Your Mentor</h2><p className="mt-1 text-xs text-slate-500">John Doe · Senior Software Engineer</p><p className="mt-1 text-xs font-semibold text-[#5FBB46]">● Available</p><p className="mt-1 text-[10px] text-slate-500">Next meeting: Thursday, Sep 10 · 4:00 PM</p></div></div><div className="flex gap-2 sm:flex-col"><Link href="/internship/dashboard/mentor" className="rounded-lg bg-[#5FBB46] px-4 py-2 text-center text-xs font-semibold text-white">Message Mentor</Link><Link href="/internship/dashboard/mentor" className="rounded-lg px-4 py-2 text-center text-xs font-semibold text-[#5FBB46] shadow-[inset_0_0_0_1px_#5FBB46]">View Profile</Link></div></section>
+  try {
+    const application = await prisma.internshipApplication.findFirst({
+      where: { studentId: userId },
+      include: { program: true, payment: true, attempts: { orderBy: { createdAt: 'desc' }, take: 1 } },
+      orderBy: { createdAt: 'desc' },
+    })
 
-        <section className="rounded-2xl bg-white p-5 shadow-[0_8px_24px_rgba(28,29,82,0.09)] sm:p-6"><div className="flex items-center justify-between"><h2 className="text-sm font-bold text-[#1C1D52]">Recent Feedback</h2><a href="#feedback" className="text-xs font-semibold text-[#5FBB46]">View Submission <ChevronRight className="inline h-3 w-3" /></a></div><h3 className="mt-4 text-xs font-bold text-[#1C1D52]">Task: Responsive Dashboard</h3><p className="mt-2 text-xs text-slate-500"><span className="font-bold text-[#5FBB46]">★ Score: 92%</span> · Mentor: John Doe</p><p className="mt-2 text-xs leading-5 text-slate-500">Great implementation. Your component structure is clean. Improve accessibility on the navigation buttons.</p><p className="mt-2 text-[10px] text-slate-400">2 hours ago</p></section>
+    if (!application) {
+      // No application yet — page should show the "start your internship" empty state.
+      const recommendedCourses = await prisma.course.findMany({
+        where: { status: CourseStatus.PUBLISHED },
+        include: courseInclude,
+        orderBy: { createdAt: 'desc' },
+        take: 3,
+      })
+      return NextResponse.json({
+        program: null,
+        recommendedCourses: recommendedCourses.map((c) => serializeCourse(c)!),
+      })
+    }
 
-        <section className="rounded-2xl bg-white p-5 shadow-[0_8px_24px_rgba(28,29,82,0.09)] sm:p-6"><h2 className="text-sm font-bold text-[#1C1D52]">Announcements</h2><div className="mt-4 space-y-3">{['New group project guidelines', 'Mentor session scheduled', 'Week 5 resources are now available'].map((item, index) => <div key={item} className="flex items-start gap-3"><span className="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#e8f7eb] text-[#5FBB46]"><Bell className="h-3 w-3" /></span><div><p className="text-xs font-semibold text-[#1C1D52]">{item}</p><p className="text-[10px] text-slate-500">Posted {index === 0 ? '2 hours ago' : index === 1 ? 'yesterday' : '2 days ago'}</p></div></div>)}</div><a href="#announcements" className="mt-5 inline-block text-xs font-semibold text-[#5FBB46]">View all announcements →</a></section>
+    const { program } = application
+    const paymentStatus = application.payment?.status ?? 'PENDING'
+    const latestAttempt = application.attempts[0]
+    const assessmentStatus = latestAttempt?.status ?? 'NOT_STARTED'
 
-        <section><div className="mb-3 flex items-center justify-between"><h2 className="text-lg font-bold text-[#1C1D52]">Recommended Courses</h2><a href="/courses" className="text-xs font-semibold text-[#5FBB46]">See More <ChevronRight className="inline h-3 w-3" /></a></div><div className="grid gap-4 md:grid-cols-3">{recommended.map((course) => <article key={course.title} className="overflow-hidden rounded-2xl bg-white p-2 shadow-[0_8px_24px_rgba(28,29,82,0.09)]"><Image src={course.image} alt="" width={700} height={380} className="h-28 w-full rounded-xl object-cover" /><div className="p-2"><span className="rounded bg-[#e8f7eb] px-2 py-1 text-[9px] font-bold text-[#5FBB46]">POPULAR</span><h3 className="mt-3 text-xs font-bold text-[#1C1D52]">{course.title}</h3><p className="mt-2 text-[10px] leading-4 text-slate-500">Laravel is a PHP based web framework for building high-end enterprise grade backends.</p><button type="button" className="mt-4 w-full rounded-lg bg-[#5FBB46] py-2 text-xs font-semibold text-white">Enroll Now</button></div></article>)}</div></section>
-      </div>
-    </InternshipShell>
-  )
+    const progress = await prisma.internshipProgress.findUnique({
+      where: { userId_programId: { userId, programId: program.id } },
+    })
+
+    const totalWeeks = parseDurationWeeks(program.duration)
+    const startDate = application.createdAt
+    const weeksElapsed = Math.min(
+      totalWeeks,
+      Math.max(1, Math.ceil((Date.now() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000))),
+    )
+    const expectedCompletion = new Date(startDate.getTime() + totalWeeks * 7 * 24 * 60 * 60 * 1000)
+
+    const completedTasks = progress?.completedTasks ?? 0
+    const totalTasks = progress?.totalTasks ?? 0
+    const pendingTasks = Math.max(0, totalTasks - completedTasks)
+    const progressPercent = progress?.progressPercent ?? 0
+
+    // Average grade across this program's graded task submissions.
+    const gradedSubmissions = await prisma.taskSubmission.findMany({
+      where: {
+        userId,
+        score: { not: null },
+        task: { module: { programId: program.id } },
+      },
+      select: { score: true },
+    })
+    const averageGradePercent = gradedSubmissions.length
+      ? Math.round(gradedSubmissions.reduce((sum, s) => sum + (s.score ?? 0), 0) / gradedSubmissions.length)
+      : null
+
+    // Next task with no submission yet, soonest due date first.
+    const upcomingTask = await prisma.internshipTask.findFirst({
+      where: {
+        module: { programId: program.id },
+        submissions: { none: { userId } },
+      },
+      orderBy: { dueDate: 'asc' },
+      include: { module: true },
+    })
+
+    const mentorAssignment = await prisma.mentorAssignment.findFirst({
+      where: { internId: userId, programId: program.id, status: 'ACTIVE' },
+      include: { mentor: { include: { mentorProfile: true } } },
+    })
+
+    const recentFeedback = await prisma.taskSubmission.findFirst({
+      where: { userId, feedback: { not: null }, task: { module: { programId: program.id } } },
+      orderBy: { reviewedAt: 'desc' },
+      include: { task: true },
+    })
+
+    const activeMentorIds = (
+      await prisma.mentorAssignment.findMany({
+        where: { internId: userId, status: 'ACTIVE' },
+        select: { mentorId: true },
+      })
+    ).map((a) => a.mentorId)
+
+    const announcements = await prisma.announcement.findMany({
+      where: {
+        OR: [
+          { scope: 'GLOBAL' },
+          ...(activeMentorIds.length ? [{ scope: 'MENTOR_MENTEES' as const, authorId: { in: activeMentorIds } }] : []),
+        ],
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 3,
+    })
+
+    const enrolledCourseIds = (
+      await prisma.enrollment.findMany({ where: { userId }, select: { courseId: true } })
+    ).map((e) => e.courseId)
+
+    const recommendedCourses = await prisma.course.findMany({
+      where: {
+        status: CourseStatus.PUBLISHED,
+        ...(enrolledCourseIds.length ? { id: { notIn: enrolledCourseIds } } : {}),
+      },
+      include: courseInclude,
+      orderBy: { createdAt: 'desc' },
+      take: 3,
+    })
+
+    return NextResponse.json({
+      program: { name: program.name, slug: program.slug },
+      paymentStatus,
+      assessmentStatus,
+      weekLabel: `Week ${weeksElapsed} of ${totalWeeks}`,
+      startDateLabel: formatDate(startDate),
+      completionDateLabel: formatDate(expectedCompletion),
+      progressPercent,
+      stats: { completedTasks, averageGradePercent, pendingTasks },
+      currentTask: upcomingTask
+        ? {
+            title: upcomingTask.title,
+            moduleTitle: upcomingTask.module.title,
+            dueLabel: upcomingTask.dueDate ? formatDate(upcomingTask.dueDate) : null,
+          }
+        : null,
+      mentor: mentorAssignment
+        ? {
+            name: mentorAssignment.mentor.name ?? 'Your mentor',
+            expertise: mentorAssignment.mentor.mentorProfile?.expertise ?? null,
+          }
+        : null,
+      recentFeedback: recentFeedback
+        ? {
+            taskTitle: recentFeedback.task.title,
+            score: recentFeedback.score,
+            feedback: recentFeedback.feedback,
+            timeAgoLabel: timeAgoLabel(recentFeedback.reviewedAt ?? recentFeedback.submittedAt),
+          }
+        : null,
+      announcements: announcements.map((a) => ({
+        title: a.title,
+        postedLabel: timeAgoLabel(a.createdAt),
+      })),
+      recommendedCourses: recommendedCourses.map((c) => serializeCourse(c)!),
+    })
+  } catch (error) {
+    console.error('Failed to load internship dashboard:', error)
+    return NextResponse.json({ error: 'Unable to load internship dashboard.' }, { status: 500 })
+  }
 }

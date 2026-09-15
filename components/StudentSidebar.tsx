@@ -11,7 +11,7 @@ import {
   Settings,
   LogOut,
 } from 'lucide-react'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
 const navItems = [
   { label: 'Dashboard', href: '/student', icon: LayoutGrid },
@@ -22,20 +22,59 @@ const navItems = [
   { label: 'Profile', href: '/student/profile', icon: User },
 ]
 
+type StudentProfile = {
+  name: string | null
+  avatarUrl: string | null
+}
+
 export default function StudentSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname() || '/student'
+
+  const [profile, setProfile] = useState<StudentProfile>({
+    name: null,
+    avatarUrl: null,
+  })
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const response = await fetch('/api/student/settings/avatar', {
+          cache: 'no-store',
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to load student profile')
+        }
+
+        const data = await response.json()
+
+        setProfile({
+          name: data.name ?? null,
+          avatarUrl: data.avatarUrl ?? null,
+        })
+      } catch (error) {
+        console.error('Failed to load student profile:', error)
+      }
+    }
+
+    loadProfile()
+  }, [])
+
+  const studentName = profile.name || 'Student'
+  const studentAvatar =
+    profile.avatarUrl || '/avatar-placeholder.png'
 
   return (
     <div className="flex h-full w-full flex-col rounded-[28px] bg-[#1C1D52] px-4 py-8 text-white shadow-[0_12px_40px_rgba(28,29,82,0.18)]">
       <div className="px-2 text-center">
         <div className="mb-4 flex justify-center">
           <img
-            src="/avatar-placeholder.png"
-            alt="Student Avatar"
+            src={studentAvatar}
+            alt={`${studentName} Avatar`}
             className="h-[88px] w-[88px] rounded-full object-cover"
           />
         </div>
-        <h3 className="text-base font-semibold tracking-tight">Aster Seawalker</h3>
+        <h3 className="text-base font-semibold tracking-tight">{profile.name}</h3>
         <p className="mt-1 text-sm font-medium text-white/55">Student</p>
       </div>
 

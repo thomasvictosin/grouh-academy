@@ -38,7 +38,7 @@ export default function StudentSidebar({ onNavigate }: { onNavigate?: () => void
   useEffect(() => {
     const loadProfile = async () => {
       try {
-        const response = await fetch('/api/student/settings/avatar', {
+        const response = await fetch('/api/student/profile', {
           cache: 'no-store',
         })
 

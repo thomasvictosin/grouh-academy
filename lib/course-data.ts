@@ -38,7 +38,7 @@ export type CourseWriteInput = {
   modules?: CourseModuleInput[]
 }
 
-type CourseDb = ReturnType<typeof getPrisma>
+export type CourseDb = ReturnType<typeof getPrisma>
 type ExistingCourse = NonNullable<Awaited<ReturnType<typeof getCourseBySlug>>>
 
 export function courseSlug(title: string) {

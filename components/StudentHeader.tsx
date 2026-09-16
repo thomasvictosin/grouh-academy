@@ -1,19 +1,51 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Bell, ChevronDown, Search } from 'lucide-react'
 import Image from 'next/image'
 import logo from '../public/logo.png'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 
-export default function StudentHeader({ name = 'Student' }: { name?: string }) {
+type HeaderProfile = { name: string | null; avatarUrl: string | null }
+
+export default function StudentHeader() {
   const [showSearch, setShowSearch] = useState(false)
   const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false)
+  const [profile, setProfile] = useState<HeaderProfile>({ name: null, avatarUrl: null })
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [searchQuery, setSearchQuery] = useState('')
   const pathname = usePathname() || '/'
+  const router = useRouter()
   const isMentorWorkspace = pathname.startsWith('/mentor')
   const isInternshipWorkspace = pathname.startsWith('/internship')
   const workspaceName = isMentorWorkspace ? 'Mentor Workspace' : isInternshipWorkspace ? 'Internship Workspace' : 'Student Workspace'
+
+  useEffect(() => {
+    fetch('/api/student/profile', { cache: 'no-store' })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (data) setProfile({ name: data.name ?? null, avatarUrl: data.avatarUrl ?? null })
+      })
+      .catch((error) => console.error('Failed to load header profile:', error))
+
+    fetch('/api/student/notifications/unread-count', { cache: 'no-store' })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (data) setUnreadCount(data.count ?? 0)
+      })
+      .catch((error) => console.error('Failed to load notification count:', error))
+  }, [])
+
+  function handleSearchSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const trimmed = searchQuery.trim()
+    router.push(trimmed ? `/student/explore-courses?q=${encodeURIComponent(trimmed)}` : '/student/explore-courses')
+    setShowSearch(false)
+  }
+
+  const displayName = profile.name || 'Student'
+  const avatarSrc = profile.avatarUrl || '/avatar-placeholder.png'
 
   return (
     <div className="relative">
@@ -50,31 +82,18 @@ export default function StudentHeader({ name = 'Student' }: { name?: string }) {
             )}
           </div>
 
-          <nav className="hidden items-center gap-6 lg:flex">
-            <Link
-              href="/internship"
-              className="text-sm font-medium text-gray-600 transition hover:text-gray-900"
-            >
-              Internship
-            </Link>
-            <Link
-              href="/courses"
-              className="text-sm font-medium text-gray-600 transition hover:text-gray-900"
-            >
-              Courses
-            </Link>
-          </nav>
-
-          <label className="relative hidden w-full max-w-[240px] md:block lg:max-w-[280px]">
+          <form onSubmit={handleSearchSubmit} className="relative hidden w-full max-w-[240px] md:block lg:max-w-[280px]">
             <span className="sr-only">Search</span>
             <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400">
               <Search className="h-4 w-4" />
             </span>
             <input
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
               className="w-full rounded-full bg-[#EEF1F6] py-2.5 pl-10 pr-4 text-sm text-gray-700 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#5FBB46]/30"
               placeholder="Search course"
             />
-          </label>
+          </form>
 
           <button
             onClick={() => setShowSearch((s) => !s)}
@@ -84,19 +103,22 @@ export default function StudentHeader({ name = 'Student' }: { name?: string }) {
             <Search className="h-5 w-5" />
           </button>
 
-          <button
+          <Link
+            href="/student/notifications"
             className="relative rounded-full p-1.5 text-gray-800 hover:bg-gray-100"
             aria-label="Notifications"
           >
             <Bell className="h-5 w-5" />
-            <span className="absolute -right-0.5 -top-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
-              1
-            </span>
-          </button>
+            {unreadCount > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </Link>
 
           <img
-            src="/avatar-placeholder.png"
-            alt={`${name} avatar`}
+            src={avatarSrc}
+            alt={`${displayName} avatar`}
             className="h-9 w-9 flex-shrink-0 rounded-full object-cover"
           />
         </div>
@@ -104,17 +126,19 @@ export default function StudentHeader({ name = 'Student' }: { name?: string }) {
 
       {showSearch && (
         <div className="absolute left-1/2 top-full z-50 mt-2 w-[92%] -translate-x-1/2 transform rounded-2xl bg-white p-3 shadow-lg md:hidden">
-          <label className="relative block">
+          <form onSubmit={handleSearchSubmit} className="relative block">
             <span className="sr-only">Search</span>
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
               <Search className="h-4 w-4" />
             </span>
             <input
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
               className="w-full rounded-full bg-[#EEF1F6] py-2.5 pl-9 pr-3 text-sm placeholder-gray-400 outline-none"
               placeholder="Search course"
               autoFocus
             />
-          </label>
+          </form>
         </div>
       )}
     </div>

@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react'
 type ProfileData = {
   name: string
   email: string
+  avatarUrl: string | null
   phone: string
   bio: string
   country: string
@@ -24,7 +25,7 @@ type ProfileData = {
   }
 }
 
-type ProfileDraft = Omit<ProfileData, 'stats' | 'studentId' | 'skills'> & { skillsText: string }
+type ProfileDraft = Omit<ProfileData, 'stats' | 'studentId' | 'skills' | 'avatarUrl'> & { skillsText: string }
 
 function toDraft(profile: ProfileData): ProfileDraft {
   return {
@@ -105,7 +106,7 @@ export default function ProfilePage() {
   return (
     <div className="space-y-5">
       <section className="rounded-2xl bg-[#5FBB46] px-6 py-5 text-[#14204f] shadow-[0_12px_28px_rgba(95,187,70,0.18)] sm:px-8 sm:py-6"><h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Profile</h1><p className="mt-2 text-xs text-[#14204f]/75">Keep your learner identity and contact details current.</p></section>
-      <section className="flex flex-col gap-5 rounded-2xl bg-white p-5 shadow-[0_8px_24px_rgba(28,29,82,0.09)] sm:flex-row sm:items-center sm:px-6"><Image src="/avatar-placeholder.png" alt={profile.name} width={80} height={80} className="h-20 w-20 rounded-full object-cover" /><div className="min-w-0 flex-1"><h2 className="text-xl font-bold text-[#1C1D52]">{profile.name}</h2><p className="mt-1 text-xs text-[#5FBB46]">Student</p>{location && <p className="mt-1 text-[10px] text-slate-500">{location}</p>}</div><button type="button" onClick={() => { setDraft(toDraft(profile)); setEditing(true) }} className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#1C1D52] px-4 py-2 text-[10px] font-semibold text-white"><Pencil className="h-3.5 w-3.5" />Edit Profile</button></section>
+      <section className="flex flex-col gap-5 rounded-2xl bg-white p-5 shadow-[0_8px_24px_rgba(28,29,82,0.09)] sm:flex-row sm:items-center sm:px-6"><Image src={profile.avatarUrl ?? '/avatar-placeholder.png'} alt={profile.name} width={80} height={80} className="h-20 w-20 rounded-full object-cover" /><div className="min-w-0 flex-1"><h2 className="text-xl font-bold text-[#1C1D52]">{profile.name}</h2><p className="mt-1 text-xs text-[#5FBB46]">Student</p>{location && <p className="mt-1 text-[10px] text-slate-500">{location}</p>}</div><button type="button" onClick={() => { setDraft(toDraft(profile)); setEditing(true) }} className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#1C1D52] px-4 py-2 text-[10px] font-semibold text-white"><Pencil className="h-3.5 w-3.5" />Edit Profile</button></section>
       {saved && <p className="rounded-lg bg-emerald-50 px-4 py-3 text-xs font-semibold text-emerald-700" role="status">Profile changes saved.</p>}
       {error && profile && <p className="rounded-lg bg-red-50 px-4 py-3 text-xs font-semibold text-red-700" role="alert">{error}</p>}
       <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">

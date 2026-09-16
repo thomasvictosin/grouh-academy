@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getCurrentUserId } from '@/lib/route-guards'
 import { getPrisma } from '@/lib/prisma'
 
+// NOTE: this is the profile route file for reference only.
 function formatMinutes(totalMinutes: number) {
   const hours = Math.floor(totalMinutes / 60)
   const minutes = totalMinutes % 60
@@ -54,6 +55,7 @@ export async function GET() {
     return NextResponse.json({
       name: user.name ?? '',
       email: user.email,
+      avatarUrl: user.avatarUrl,
       phone: profile.phone ?? '',
       bio: profile.bio ?? '',
       country: profile.country ?? '',

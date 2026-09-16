@@ -3,6 +3,7 @@ import { EnrollmentStatus } from '@/generated/prisma/client'
 import { getCurrentUserId } from '@/lib/route-guards'
 import { getPrisma } from '@/lib/prisma'
 import { getCourseBySlug } from '@/lib/course-data'
+import { ensureCertificateIssued } from '@/lib/certificates'
 
 export async function POST(
   request: NextRequest,
@@ -86,10 +87,24 @@ export async function POST(
   // Reaching 100% marks the enrollment complete; un-completing a lesson
   // after that point moves it back to active rather than leaving a
   // COMPLETED enrollment whose lessons aren't all actually complete.
-  if (progressPercent === 100 && enrollment.status !== EnrollmentStatus.COMPLETED) {
-    await prisma.enrollment.update({
-      where: { id: enrollment.id },
-      data: { status: EnrollmentStatus.COMPLETED, completedAt: new Date() },
+  if (progressPercent === 100) {
+    if (enrollment.status !== EnrollmentStatus.COMPLETED) {
+      await prisma.enrollment.update({
+        where: { id: enrollment.id },
+        data: { status: EnrollmentStatus.COMPLETED, completedAt: new Date() },
+      })
+    }
+
+    // Not gated on the status transition above: an enrollment that
+    // already reached 100% before certificate issuance existed (or
+    // whose certificate creation failed for any reason) should still
+    // end up with a certificate the next time progress is recalculated.
+    // ensureCertificateIssued() is idempotent, so calling it here even
+    // when nothing changed is safe.
+    await ensureCertificateIssued(prisma, {
+      userId,
+      courseId: course.id,
+      enrollmentId: enrollment.id,
     })
   } else if (progressPercent < 100 && enrollment.status === EnrollmentStatus.COMPLETED) {
     await prisma.enrollment.update({

@@ -13,7 +13,7 @@ const navItems = [
   { label: 'Task', href: '/internship/dashboard/tasks', icon: CheckSquare },
   { label: 'Groups', href: '/internship/dashboard/groups', icon: Users },
   { label: 'Grades', href: '/internship/dashboard/grades', icon: Award },
-  { label: 'Certificate', href: '/student/certificates', icon: FileText },
+  { label: 'Certificate', href: '/internship/dashboard/certificate', icon: FileText },
   { label: 'Settings', href: '/internship/dashboard/settings', icon: Settings },
   { label: 'Resource', href: '/internship/dashboard/resources', icon: BookOpen },
 ]

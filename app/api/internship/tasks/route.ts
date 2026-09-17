@@ -162,6 +162,9 @@ export async function GET() {
         status,
         tone,
         scoreLabel,
+        score: submission?.score ?? null,
+        maxScore: task.maxScore,
+        submittedAt: submission?.submittedAt ? submission.submittedAt.toISOString() : null,
       })
     }
   }

@@ -1,6 +1,7 @@
 'use client'
 
-import { Send } from 'lucide-react'
+import { Send, Crown } from 'lucide-react'
+import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import InternshipShell from '@/components/InternshipShell'
 
@@ -14,9 +15,16 @@ export default function MentorChatPage() {
   const [draft, setDraft] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isPremium, setIsPremium] = useState<boolean | null>(null)
   const [sending, setSending] = useState(false)
   const lastFetchedAt = useRef<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    fetch('/api/internship/access-status')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => setIsPremium(data ? data.premiumTier !== 'NONE' : null))
+  }, [])
 
   async function loadMessages(initial: boolean) {
     try {
@@ -78,6 +86,21 @@ export default function MentorChatPage() {
     } finally {
       setSending(false)
     }
+  }
+
+  if (!loading && error && messages.length === 0 && isPremium === false) {
+    return (
+      <InternshipShell>
+        <div className="flex h-[calc(100vh-160px)] flex-col items-center justify-center rounded-2xl bg-white p-8 text-center shadow-[0_8px_24px_rgba(28,29,82,0.09)]">
+          <Crown className="h-10 w-10 text-[#5FBB46]" />
+          <h1 className="mt-4 text-lg font-bold text-[#1C1D52]">Mentor chat is a Premium feature</h1>
+          <p className="mt-2 max-w-sm text-sm text-slate-500">Upgrade to get a dedicated mentor assigned to you and unlock direct messaging.</p>
+          <Link href="/internship/premium" className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[#5FBB46] px-5 py-2.5 text-xs font-bold text-[#14204f]">
+            View Premium Plans
+          </Link>
+        </div>
+      </InternshipShell>
+    )
   }
 
   return (

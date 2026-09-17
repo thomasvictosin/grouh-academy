@@ -18,6 +18,9 @@ export type InternshipTaskItem = {
   status: TaskStatusLabel
   tone: TaskTone
   scoreLabel: string
+  score: number | null
+  maxScore: number
+  submittedAt: string | null
 }
 
 export type InternshipAlert = {

@@ -11,7 +11,6 @@ const navItems = [
   { label: 'Mentor', href: '/internship/dashboard/mentor', icon: MessageCircle },
   { label: 'Group Discussion', href: '/internship/dashboard/discussion', icon: UserRound },
   { label: 'Task', href: '/internship/dashboard/tasks', icon: CheckSquare },
-  { label: 'Groups', href: '/internship/dashboard/groups', icon: Users },
   { label: 'Grades', href: '/internship/dashboard/grades', icon: Award },
   { label: 'Certificate', href: '/internship/dashboard/certificate', icon: FileText },
   { label: 'Settings', href: '/internship/dashboard/settings', icon: Settings },

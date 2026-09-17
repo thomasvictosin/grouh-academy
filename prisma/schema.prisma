@@ -138,6 +138,12 @@ enum InternshipApplicationStatus {
   ON_HOLD
 }
 
+enum PremiumTier {
+  NONE
+  TIER_100K
+  TIER_400K
+}
+
 model UserSettings {
   id     String @id @default(cuid())
   userId String @unique @db.Uuid
@@ -210,10 +216,16 @@ model User {
   sentMessages        Message[]      @relation("SentMessages")
   sentAnnouncements   Announcement[] @relation("AnnouncementAuthor")
 
-
   sentNotifications Notification[] @relation("NotificationRecipient")
   auditLogs         AuditLog[]     @relation("AuditActor")
   targetAuditLogs   AuditLog[]     @relation("AuditTargetUser")
+
+  ledGroups           InternshipGroup[]       @relation("GroupLeader")
+  groupMemberships    InternshipGroupMember[] @relation("GroupMembership")
+  sentGroupMessages   GroupMessage[]          @relation("GroupMessageSender")
+  createdGroupMeetings GroupMeeting[]         @relation("GroupMeetingCreator")
+
+  meetingReminders Boolean @default(false)
 
   @@index([status])
 }
@@ -292,6 +304,7 @@ model InternshipProgram {
   conversations Conversation[]
   announcements Announcement[]
   internshipCertificates InternshipCertificate[]
+  groups InternshipGroup[]
 }
 
 model InternshipApplication {
@@ -306,6 +319,10 @@ model InternshipApplication {
   updatedAt DateTime            @updatedAt
 
   status InternshipApplicationStatus @default(ACTIVE)
+
+  onboardingAnswers  Json?
+  premiumTier        PremiumTier @default(NONE)
+  premiumActivatedAt DateTime?
 
   certificates InternshipCertificate[]
 
@@ -340,6 +357,10 @@ model AssessmentAttempt {
   uploads              AssessmentUpload[]
   createdAt            DateTime                @default(now())
   updatedAt            DateTime                @updatedAt
+
+  score          Int?
+  totalQuestions Int?
+  scorePercent   Int?
 
   @@index([applicationId, status])
   @@index([assessmentId])
@@ -893,6 +914,8 @@ model InternshipAssessment {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  passingScore Int @default(70)
+
   program   InternshipProgram    @relation(fields: [programId], references: [id], onDelete: Cascade)
   questions AssessmentQuestion[]
   attempts  AssessmentAttempt[]
@@ -1127,4 +1150,68 @@ model Announcement {
   @@index([scope])
   @@index([authorId])
   @@index([programId])
+}
+
+model InternshipGroup {
+  id        String   @id @default(cuid())
+  programId String
+  number    Int
+  capacity  Int      @default(12)
+  leaderId  String?  @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  program InternshipProgram       @relation(fields: [programId], references: [id], onDelete: Cascade)
+  leader  User?                   @relation("GroupLeader", fields: [leaderId], references: [id], onDelete: SetNull)
+  members InternshipGroupMember[]
+  messages GroupMessage[]
+  meetings GroupMeeting[]
+
+  @@unique([programId, number])
+  @@index([programId])
+}
+
+model InternshipGroupMember {
+  id        String   @id @default(cuid())
+  groupId   String
+  programId String
+  userId    String   @db.Uuid
+  joinedAt  DateTime @default(now())
+
+  group InternshipGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User            @relation("GroupMembership", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([programId, userId])
+  @@index([groupId])
+  @@index([userId])
+}
+
+model GroupMessage {
+  id        String   @id @default(cuid())
+  groupId   String
+  senderId  String   @db.Uuid
+  content   String
+  createdAt DateTime @default(now())
+
+  group  InternshipGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  sender User            @relation("GroupMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([groupId, createdAt])
+  @@index([senderId])
+}
+
+model GroupMeeting {
+  id          String   @id @default(cuid())
+  groupId     String
+  createdById String   @db.Uuid
+  title       String   @default("Group Meeting")
+  scheduledAt DateTime
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  group     InternshipGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  createdBy User            @relation("GroupMeetingCreator", fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([groupId, scheduledAt])
 }

@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { BookOpen, Sparkles, Users } from 'lucide-react'
 import Breadcrumbs from '@/components/Breadcrumbs'
 import CourseCatalog from '@/components/CourseCatalog'
@@ -20,7 +21,9 @@ export default function CoursesPage() {
           </div>
         </div>
       </section>
-      <CourseCatalog />
+      <Suspense fallback={<div className="px-6 py-14 text-center">Loading courses...</div>}>
+        <CourseCatalog />
+      </Suspense>
     </main>
   )
 }

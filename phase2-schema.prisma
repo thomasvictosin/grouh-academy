@@ -1,3 +1,0 @@
-// --- Add this field to the existing InternshipAssessment model ---
-//
-// passingScore Int @default(70)

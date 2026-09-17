@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import Image from 'next/image'
 import { Award, BookOpen, CheckSquare, FileText, Grid2X2, LogOut, MessageCircle, Settings, Users, UserRound } from 'lucide-react'
+import React, { useEffect, useState } from 'react'
 
 const navItems = [
   { label: 'Dashboard', href: '/internship/dashboard', icon: Grid2X2 },
@@ -17,15 +18,61 @@ const navItems = [
   { label: 'Explore courses', href: '/student/', icon: BookOpen },
 ]
 
+type InternshipProfile = {
+  name: string | null
+  avatarUrl: string | null
+}
+
+
 export default function InternshipSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname() || '/internship/dashboard'
+
+const [profile, setProfile] = useState<InternshipProfile>({
+    name: null,
+    avatarUrl: null,
+  })
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const response = await fetch('/api/internship/profile', {
+          cache: 'no-store',
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to load intern profile')
+        }
+
+        const data = await response.json()
+
+        setProfile({
+          name: data.name ?? null,
+          avatarUrl: data.avatarUrl ?? null,
+        })
+      } catch (error) {
+        console.error('Failed to load intern profile:', error)
+      }
+    }
+
+    loadProfile()
+  }, [])
+
+  const internName = profile.name || 'Intern'
+  const internAvatar =
+    profile.avatarUrl || '/avatar-placeholder.png'
 
   return (
     <div className="flex h-full w-full flex-col rounded-[28px] bg-[#1C1D52] px-3 py-6 text-white shadow-[0_12px_40px_rgba(28,29,82,0.18)] sm:px-4 sm:py-8">
       <div className="px-2 text-center">
-        <div className="mb-4 flex justify-center"><Image src="/avatar-placeholder.png" alt="Student Avatar" width={78} height={78} className="h-[78px] w-[78px] rounded-full object-cover" /></div>
-        <h3 className="text-sm font-semibold tracking-tight">Aster Seawalker</h3>
-        <p className="mt-1 text-xs font-medium text-white/55">Intern</p>
+        <div className="mb-4 flex justify-center">
+          <img
+            src={internAvatar}
+            alt={`${internName} Avatar`}
+            className="h-[88px] w-[88px] rounded-full object-cover"
+          />
+        </div>
+        <h3 className="text-base font-semibold tracking-tight">{profile.name}</h3>
+        <p className="mt-1 text-sm font-medium text-white/55">Intern</p>
       </div>
 
       <nav aria-label="Internship dashboard" className="mt-7 flex-1 overflow-y-auto px-1">

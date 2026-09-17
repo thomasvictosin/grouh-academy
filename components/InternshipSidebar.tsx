@@ -14,7 +14,7 @@ const navItems = [
   { label: 'Grades', href: '/internship/dashboard/grades', icon: Award },
   { label: 'Certificate', href: '/internship/dashboard/certificate', icon: FileText },
   { label: 'Settings', href: '/internship/dashboard/settings', icon: Settings },
-  { label: 'Resource', href: '/internship/dashboard/resources', icon: BookOpen },
+  { label: 'Explore courses', href: '/student/', icon: BookOpen },
 ]
 
 export default function InternshipSidebar({ onNavigate }: { onNavigate?: () => void }) {

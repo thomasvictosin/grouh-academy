@@ -21,7 +21,7 @@ export default function MentorShell({ children }: { children: React.ReactNode })
             {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
           <div className="min-w-0 flex-1">
-            <StudentHeader name="Mentor" />
+            <StudentHeader />
           </div>
         </div>
       </header>

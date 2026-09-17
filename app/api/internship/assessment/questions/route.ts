@@ -37,7 +37,7 @@ export async function GET() {
       attemptId: attempt.id,
       questions: questions.map((q) => ({
         id: q.id,
-        prompt: q.question,
+        prompt: q.prompt,
         options: q.options,
       })),
     })

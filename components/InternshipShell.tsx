@@ -58,7 +58,7 @@ export default function InternshipShell({ children }: { children: React.ReactNod
     setPaying(true)
     setPayError('')
     try {
-      const response = await fetch('/api/internship/payment/acceptance/initialize', { method: 'POST' })
+      const response = await fetch('/api/internship/payment/initialize', { method: 'POST' })
       const data = await response.json()
       if (!response.ok || !data.authorization_url) throw new Error(data.message || 'Payment could not be initialized.')
       window.location.href = data.authorization_url

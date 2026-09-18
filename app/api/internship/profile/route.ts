@@ -64,6 +64,20 @@ export async function GET() {
       }
     }
 
+     // Deliberately a separate, minimal query from the internship application
+    // lookup so a problem there can never take down name/avatar rendering.
+    let isPremium = false
+    try {
+      const application = await prisma.internshipApplication.findFirst({
+        where: { studentId: userId },
+        orderBy: { createdAt: 'desc' },
+        select: { premiumTier: true },
+      })
+      isPremium = !!application && application.premiumTier !== 'NONE'
+    } catch (tierError) {
+      console.error('Failed to load premium tier for sidebar (non-fatal):', tierError)
+    }
+
     return NextResponse.json({
       name: user.name ?? '',
       email: user.email,
@@ -74,6 +88,7 @@ export async function GET() {
       gender: profile.gender ?? '',
       skills: profile.skills,
       internship,
+      tier: isPremium ? 'Premium' : 'Free',
     })
   } catch (error) {
     console.error('Failed to load internship profile:', error)
@@ -92,7 +107,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 })
   }
 
-  const { name, phone, location, dateOfBirth, gender } = body as Record<string, unknown>
+  const { name, phone, location, dateOfBirth, gender, avatarUrl } = body as Record<string, unknown>
   const prisma = getPrisma()
 
   try {
@@ -104,25 +119,56 @@ export async function PATCH(request: Request) {
       }
     }
 
-    await prisma.$transaction([
-      ...(typeof name === 'string' && name.trim() ? [prisma.user.update({ where: { id: userId }, data: { name: name.trim() } })] : []),
-      prisma.profile.upsert({
-        where: { userId },
-        create: {
-          userId,
-          phone: typeof phone === 'string' ? phone : undefined,
-          state: typeof location === 'string' ? location : undefined,
-          dateOfBirth: parsedDob ?? undefined,
-          gender: typeof gender === 'string' ? gender : undefined,
-        },
-        update: {
-          phone: typeof phone === 'string' ? phone : undefined,
-          state: typeof location === 'string' ? location : undefined,
-          dateOfBirth: parsedDob,
-          gender: typeof gender === 'string' ? gender : undefined,
-        },
-      }),
-    ])
+    const userUpdateData: { name?: string; avatarUrl?: string } = {}
+    if (typeof name === 'string' && name.trim()) {
+      userUpdateData.name = name.trim()
+    }
+    if (typeof avatarUrl === 'string' && avatarUrl.trim()) {
+      userUpdateData.avatarUrl = avatarUrl.trim()
+    }
+
+    // Only touch Profile when a profile field was actually sent. The
+    // avatar-only save from the upload control sends just { avatarUrl },
+    // so running an unconditional profile.upsert() here was doing a
+    // second, entirely unnecessary database round-trip inside the same
+    // transaction on every avatar upload - wasted work that, combined
+    // with a slow/high-latency DB connection, was enough to blow past
+    // Prisma's 5s interactive-transaction timeout (P2028).
+    const hasProfileFields =
+      phone !== undefined || location !== undefined || dateOfBirth !== undefined || gender !== undefined
+
+    await prisma.$transaction(
+      [
+        ...(Object.keys(userUpdateData).length
+          ? [prisma.user.update({ where: { id: userId }, data: userUpdateData })]
+          : []),
+        ...(hasProfileFields
+          ? [
+              prisma.profile.upsert({
+                where: { userId },
+                create: {
+                  userId,
+                  phone: typeof phone === 'string' ? phone : undefined,
+                  state: typeof location === 'string' ? location : undefined,
+                  dateOfBirth: parsedDob ?? undefined,
+                  gender: typeof gender === 'string' ? gender : undefined,
+                },
+                update: {
+                  phone: typeof phone === 'string' ? phone : undefined,
+                  state: typeof location === 'string' ? location : undefined,
+                  dateOfBirth: parsedDob,
+                  gender: typeof gender === 'string' ? gender : undefined,
+                },
+              }),
+            ]
+          : []),
+      ],
+      // Safety margin against the slow-connection issue visible in the
+      // surrounding request logs (plain GETs taking 2-5s). This doesn't
+      // fix that underlying latency, just stops this specific write from
+      // being the first thing to fail because of it.
+      { timeout: 15000 },
+    )
 
     return NextResponse.json({ success: true })
   } catch (error) {

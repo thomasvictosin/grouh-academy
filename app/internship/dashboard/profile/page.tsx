@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { BriefcaseBusiness, Check, Edit3, MapPin, Phone, UserRound } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { BriefcaseBusiness, Camera, Check, Edit3, MapPin, Phone, UserRound } from 'lucide-react'
 import Image from 'next/image'
 import InternshipShell from '@/components/InternshipShell'
 
@@ -32,6 +32,8 @@ type ProfileData = {
 
 type Draft = { name: string; phone: string; location: string; dateOfBirth: string; gender: string }
 
+const MAX_AVATAR_BYTES = 2 * 1024 * 1024 // 2MB - stored inline as a data URL (same pattern as course thumbnails elsewhere in this app), so kept modest to avoid bloating every profile fetch.
+
 export default function InternshipProfilePage() {
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [draft, setDraft] = useState<Draft | null>(null)
@@ -40,6 +42,8 @@ export default function InternshipProfilePage() {
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [togglingStatus, setTogglingStatus] = useState(false)
+  const [savingAvatar, setSavingAvatar] = useState(false)
+  const avatarInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     fetch('/api/internship/profile')
@@ -100,6 +104,56 @@ export default function InternshipProfilePage() {
     }
   }
 
+  function handleAvatarClick() {
+    avatarInputRef.current?.click()
+  }
+
+  function handleAvatarChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    event.target.value = '' // allow re-selecting the same file later
+
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      setError('Please choose an image file.')
+      return
+    }
+
+    if (file.size > MAX_AVATAR_BYTES) {
+      setError('That image is too large - please choose one under 2MB.')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = async (loadEvent) => {
+      const dataUrl = loadEvent.target?.result
+      if (typeof dataUrl !== 'string') return
+
+      setSavingAvatar(true)
+      setError(null)
+
+      try {
+        const response = await fetch('/api/internship/profile', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ avatarUrl: dataUrl }),
+        })
+
+        if (!response.ok) {
+          const body = await response.json().catch(() => null)
+          throw new Error(body?.error ?? 'Unable to update your photo.')
+        }
+
+        setProfile((prev) => (prev ? { ...prev, avatarUrl: dataUrl } : prev))
+      } catch (avatarError) {
+        setError(avatarError instanceof Error ? avatarError.message : 'Unable to update your photo.')
+      } finally {
+        setSavingAvatar(false)
+      }
+    }
+    reader.readAsDataURL(file)
+  }
+
   if (loading) {
     return <InternshipShell><p className="rounded-2xl bg-white p-6 text-sm text-slate-500 shadow-[0_8px_24px_rgba(28,29,82,0.09)]">Loading profile...</p></InternshipShell>
   }
@@ -123,11 +177,24 @@ export default function InternshipProfilePage() {
     <InternshipShell>
       <div className="space-y-5">
         <section className="flex flex-col gap-5 rounded-2xl bg-[#5FBB46] p-5 text-[#14204f] shadow-[0_12px_28px_rgba(95,187,70,0.18)] sm:flex-row sm:items-center sm:px-6 sm:py-6">
-          <Image src={profile.avatarUrl ?? '/avatar-placeholder.png'} alt={profile.name} width={84} height={84} className="h-20 w-20 rounded-full border-2 border-[#1C1D52] object-cover" />
+          <div className="relative shrink-0">
+            <Image src={profile.avatarUrl ?? '/avatar-placeholder.png'} alt={profile.name} width={84} height={84} className="h-20 w-20 rounded-full border-2 border-[#1C1D52] object-cover" />
+            <button
+              type="button"
+              onClick={handleAvatarClick}
+              disabled={savingAvatar}
+              aria-label="Change profile photo"
+              className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-[#1C1D52] text-white shadow-md disabled:opacity-60"
+            >
+              <Camera className="h-3.5 w-3.5" />
+            </button>
+            <input ref={avatarInputRef} type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
+          </div>
           <div className="min-w-0 flex-1">
             <h1 className="text-xl font-bold sm:text-2xl">{profile.name || 'Your name'}</h1>
             {profile.internship && <p className="mt-1 text-xs">{profile.internship.program} Intern</p>}
             {profile.location && <p className="mt-1 text-[10px] text-[#14204f]/65">{profile.location}</p>}
+            {savingAvatar && <p className="mt-1 text-[10px] text-[#14204f]/65">Updating photo...</p>}
           </div>
           <button
             type="button"

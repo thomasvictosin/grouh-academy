@@ -23,7 +23,7 @@ export default function PaymentCallbackPage() {
 
     const verifyUrl = type === 'premium'
       ? `/api/internship/premium/verify?reference=${encodeURIComponent(reference)}`
-      : `/api/internship/payment/acceptance/verify?reference=${encodeURIComponent(reference)}`
+      : `/api/internship/payment/verify?reference=${encodeURIComponent(reference)}`
 
     fetch(verifyUrl)
       .then(async (response) => {

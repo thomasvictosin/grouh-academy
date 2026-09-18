@@ -25,21 +25,35 @@ export async function GET(request: Request) {
     }
 
     const applicationId = data.data.metadata?.applicationId as string | undefined
-    if (!applicationId) {
+    if (
+      !applicationId ||
+      data.data.reference !== reference ||
+      data.data.metadata?.purpose !== 'internship_acceptance_fee'
+    ) {
       return NextResponse.json({ message: 'Payment reference is missing application context.' }, { status: 400 })
     }
 
-    // Confirm the payment belongs to this user's own application before marking it paid.
+    // Confirm the verified transaction is the exact pending payment record
+    // for this user's application. Metadata alone must never settle a
+    // different or superseded payment reference.
     const application = await prisma.internshipApplication.findFirst({
-      where: { id: applicationId, studentId: userId },
+      where: { id: applicationId, studentId: userId, payment: { is: { reference } } },
+      include: { program: true, payment: true },
     })
     if (!application) {
       return NextResponse.json({ message: 'This payment does not belong to your account.' }, { status: 403 })
     }
 
+    if (
+      data.data.amount !== application.program.assessmentFee * 100 ||
+      data.data.currency !== application.payment?.currency
+    ) {
+      return NextResponse.json({ message: 'Payment amount or currency does not match this application.' }, { status: 400 })
+    }
+
     await prisma.internshipPayment.update({
       where: { applicationId },
-      data: { status: 'PAID', paidAt: new Date(), reference },
+      data: { status: 'PAID', paidAt: new Date() },
     })
 
     return NextResponse.json({ status: 'success' })

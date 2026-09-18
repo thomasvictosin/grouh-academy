@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import Image from 'next/image'
-import { Award, BookOpen, CheckSquare, FileText, Grid2X2, LogOut, MessageCircle, Settings, Users, UserRound } from 'lucide-react'
+import { Award, BookOpen, CheckSquare, Crown, FileText, Grid2X2, LogOut, MessageCircle, Settings, Users, UserRound } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 
 const navItems = [
@@ -21,6 +21,7 @@ const navItems = [
 type InternshipProfile = {
   name: string | null
   avatarUrl: string | null
+  tier: 'Free' | 'Premium'
 }
 
 
@@ -30,6 +31,7 @@ export default function InternshipSidebar({ onNavigate }: { onNavigate?: () => v
 const [profile, setProfile] = useState<InternshipProfile>({
     name: null,
     avatarUrl: null,
+    tier: 'Free'
   })
 
   useEffect(() => {
@@ -48,6 +50,7 @@ const [profile, setProfile] = useState<InternshipProfile>({
         setProfile({
           name: data.name ?? null,
           avatarUrl: data.avatarUrl ?? null,
+          tier: data.tier === 'Premium' ? 'Premium' : 'Free'
         })
       } catch (error) {
         console.error('Failed to load intern profile:', error)
@@ -60,10 +63,15 @@ const [profile, setProfile] = useState<InternshipProfile>({
   const internName = profile.name || 'Intern'
   const internAvatar =
     profile.avatarUrl || '/avatar-placeholder.png'
+    const isPremium = profile.tier === 'Premium'
 
   return (
     <div className="flex h-full w-full flex-col rounded-[28px] bg-[#1C1D52] px-3 py-6 text-white shadow-[0_12px_40px_rgba(28,29,82,0.18)] sm:px-4 sm:py-8">
       <div className="px-2 text-center">
+        <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[9px] font-bold uppercase tracking-[0.1em] ${isPremium ? 'bg-[#5FBB46] text-[#14204f]' : 'bg-white/10 text-white/70'}`}>
+          {isPremium && <Crown className="h-3 w-3" />}
+          {profile.tier}
+        </span>
         <div className="mb-4 flex justify-center">
           <img
             src={internAvatar}
@@ -84,6 +92,12 @@ const [profile, setProfile] = useState<InternshipProfile>({
           })}
         </ul>
       </nav>
+
+      {!isPremium && (
+        <Link href="/internship/premium" onClick={onNavigate} className="mb-1 flex items-center gap-3 rounded-2xl bg-[#5FBB46]/15 px-3 py-2.5 text-xs font-semibold text-[#9be28a] transition hover:bg-[#5FBB46]/25 sm:px-4 sm:py-3 sm:text-sm">
+        <Crown className="h-4 w-4 shrink-0 sm:h-5 sm:w-5" strokeWidth={1.75} /><span>Upgrade</span>
+      </Link>
+      )}
 
       <Link href="/internship/dashboard/logout" onClick={onNavigate} className="flex items-center gap-3 rounded-2xl px-3 py-2.5 text-xs font-medium text-white/90 transition hover:bg-white/10 sm:px-4 sm:py-3 sm:text-sm"><LogOut className="h-4 w-4 shrink-0 sm:h-5 sm:w-5" strokeWidth={1.75} /><span>Log Out</span></Link>
     </div>

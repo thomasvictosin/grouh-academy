@@ -1,5 +1,10 @@
-import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient, RoleName } from '../generated/prisma/client';
+import { RoleName } from '../generated/prisma/client';
+import { getPrisma } from '@/lib/prisma';
+import {
+  getDevelopmentRolePermissions,
+  getValidatedDevelopmentRole,
+  isDevelopmentBypassEnabled,
+} from '@/lib/dev-auth';
 
 export type PermissionKey = string;
 
@@ -9,27 +14,35 @@ export interface UserRBAC {
   permissions: PermissionKey[];
 }
 
-declare global {
-  var __grouhPrismaClient: PrismaClient | undefined;
-}
-
-function getPrismaClient(): PrismaClient {
-  if (!globalThis.__grouhPrismaClient) {
-    const connectionString = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
-
-    if (!connectionString) {
-      throw new Error('Missing DIRECT_URL or DATABASE_URL environment variable for Prisma RBAC utilities.');
-    }
-
-    const adapter = new PrismaPg({ connectionString });
-    globalThis.__grouhPrismaClient = new PrismaClient({ adapter });
-  }
-
-  return globalThis.__grouhPrismaClient;
-}
+const DEV_USER_ID_PREFIX = 'dev:';
 
 export async function getUserRBAC(userId: string): Promise<UserRBAC> {
-  const prisma = getPrismaClient();
+  // Development-bypass identities (e.g. "dev:INSTRUCTOR") are not rows
+  // in the database and are never valid UUIDs, so they must never reach
+  // the userId-keyed Prisma queries below.
+  if (userId.startsWith(DEV_USER_ID_PREFIX)) {
+    if (!isDevelopmentBypassEnabled()) {
+      return { userId, roles: [], permissions: [] };
+    }
+
+    const developmentRole = getValidatedDevelopmentRole(
+      userId.slice(DEV_USER_ID_PREFIX.length),
+    );
+
+    if (!developmentRole) {
+      return { userId, roles: [], permissions: [] };
+    }
+
+    const permissions = await getDevelopmentRolePermissions(developmentRole);
+
+    return {
+      userId,
+      roles: [developmentRole],
+      permissions,
+    };
+  }
+
+  const prisma = getPrisma();
 
   const userRoles = await prisma.userRole.findMany({
     where: { userId },

@@ -24,7 +24,7 @@ export default function InternshipPaymentPage() {
     setStatus('loading')
     setError('')
     try {
-      const response = await fetch('/api/internship/payment/initialize', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ programSlug: program.slug, email: 'student@grouhacademy.com' }) })
+      const response = await fetch('/api/internship/payment/initialize', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ programSlug: program.slug }) })
       const data = await response.json()
       if (!response.ok || !data.authorization_url) throw new Error(data.message || 'Payment could not be initialized.')
       window.location.href = data.authorization_url

@@ -40,11 +40,27 @@ export function getAuthorizedHomeRouteForRoles(
   return '/student'
 }
 
+export function getInitialStudentRoute(hasInternshipApplication: boolean): string {
+  return hasInternshipApplication ? '/internship/dashboard' : '/internship/onboarding'
+}
+
 export async function getAuthorizedHomeRouteForUserId(
   userId: string,
 ): Promise<string> {
   const { roles } = await getUserRBAC(userId)
-  return getAuthorizedHomeRouteForRoles(roles)
+  const baseRoute = getAuthorizedHomeRouteForRoles(roles)
+
+  if (roles.includes(RoleName.STUDENT) || roles.includes(RoleName.INTERN)) {
+    const prisma = getPrisma()
+    const existingApplication = await prisma.internshipApplication.findFirst({
+      where: { studentId: userId },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    return getInitialStudentRoute(Boolean(existingApplication))
+  }
+
+  return baseRoute
 }
 
 export async function ensurePrismaUserForSupabaseAuth(

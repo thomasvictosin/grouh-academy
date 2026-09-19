@@ -40,6 +40,12 @@ enum InternshipPaymentStatus {
   CANCELLED
 }
 
+enum CohortStatus {
+  UPCOMING
+  ACTIVE
+  COMPLETED
+}
+
 enum AssessmentAttemptStatus {
   NOT_STARTED
   IN_PROGRESS
@@ -144,6 +150,54 @@ enum PremiumTier {
   TIER_400K
 }
 
+model PlatformSettings {
+  id String @id @default("singleton")
+
+  // General platform settings
+  academyName     String  @default("Grouh Academy")
+  platformName    String  @default("Grouh Academy")
+  supportEmail    String  @default("support@grouhacademy.com")
+  platformUrl     String?
+  defaultLanguage String  @default("English (US)")
+  timezone        String  @default("Africa/Lagos")
+  maxUploadSizeMb Int     @default(5)
+
+  // Course and student settings
+  courseEnrollmentEnabled     Boolean @default(true)
+  allowStudentRegistration    Boolean @default(true)
+  enableCourseReviews         Boolean @default(true)
+  autoApproveCourses          Boolean @default(false)
+  autoApproveSubmittedCourses Boolean @default(false)
+  maintenanceMode             Boolean @default(false)
+
+  // Internship / pricing settings
+  premiumTier1Amount            Int     @default(100000)
+  premiumTier2Amount            Int     @default(400000)
+  defaultAssessmentPassScore    Int     @default(70)
+  maxGroupSize                  Int     @default(12)
+  internshipApplicationsEnabled Boolean @default(true)
+
+  // Certificate settings
+  certificateIssuerName        String  @default("Grouh Academy")
+  certificatePrefix            String  @default("GROUH")
+  certificateNumberPrefix      String  @default("CERT-INT")
+  certificateMinimumCompletion Int     @default(100)
+  automaticCertificateIssue    Boolean @default(true)
+
+  // Notification settings
+  notifyAdminOnRegistration  Boolean @default(true)
+  notifyAdminOnPayment       Boolean @default(true)
+  notifyStudentOnEnrollment  Boolean @default(true)
+  notifyStudentOnCertificate Boolean @default(true)
+
+  // Audit
+  updatedById String? @db.Uuid
+  updatedBy   User?   @relation("PlatformSettingsUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model UserSettings {
   id     String @id @default(cuid())
   userId String @unique @db.Uuid
@@ -220,12 +274,13 @@ model User {
   auditLogs         AuditLog[]     @relation("AuditActor")
   targetAuditLogs   AuditLog[]     @relation("AuditTargetUser")
 
-  ledGroups           InternshipGroup[]       @relation("GroupLeader")
-  groupMemberships    InternshipGroupMember[] @relation("GroupMembership")
-  sentGroupMessages   GroupMessage[]          @relation("GroupMessageSender")
-  createdGroupMeetings GroupMeeting[]         @relation("GroupMeetingCreator")
+  ledGroups            InternshipGroup[]       @relation("GroupLeader")
+  groupMemberships     InternshipGroupMember[] @relation("GroupMembership")
+  sentGroupMessages    GroupMessage[]          @relation("GroupMessageSender")
+  createdGroupMeetings GroupMeeting[]          @relation("GroupMeetingCreator")
 
-  meetingReminders Boolean @default(false)
+  meetingReminders        Boolean            @default(false)
+  updatedPlatformSettings PlatformSettings[] @relation("PlatformSettingsUpdatedBy")
 
   @@index([status])
 }
@@ -234,20 +289,20 @@ model Profile {
   id     String @id @default(uuid()) @db.Uuid
   userId String @unique @db.Uuid
 
-  firstName String?
-  lastName  String?
-  phone     String?
-  bio       String?
-  country   String?
-  state     String?
+  firstName   String?
+  lastName    String?
+  phone       String?
+  bio         String?
+  country     String?
+  state       String?
   dateOfBirth DateTime?
   gender      String?
-  
+
   institution    String?
   program        String?
   enrollmentDate DateTime?
   studentId      String?   @unique
-  skills String[] @default([])
+  skills         String[]  @default([])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -290,6 +345,7 @@ model InternshipProgram {
   communityAvailability  Boolean                 @default(false)
   status                 InternshipProgramStatus @default(DRAFT)
   applications           InternshipApplication[]
+  cohorts                InternshipCohort[]
   tracks                 InternshipTrack[]
   assessments            InternshipAssessment[]
   modules                InternshipModule[]
@@ -301,18 +357,39 @@ model InternshipProgram {
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
 
-  conversations Conversation[]
-  announcements Announcement[]
+  conversations          Conversation[]
+  announcements          Announcement[]
   internshipCertificates InternshipCertificate[]
-  groups InternshipGroup[]
+  groups                 InternshipGroup[]
+}
+
+model InternshipCohort {
+  id          String       @id @default(cuid())
+  programId   String
+  name        String
+  slug        String       @unique
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  status      CohortStatus @default(UPCOMING)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  program     InternshipProgram     @relation(fields: [programId], references: [id], onDelete: Cascade)
+  applications InternshipApplication[]
+
+  @@index([programId])
+  @@index([startDate])
 }
 
 model InternshipApplication {
   id        String              @id @default(cuid())
   studentId String              @db.Uuid
   programId String
+  cohortId  String?
   student   User                @relation(fields: [studentId], references: [id], onDelete: Cascade)
   program   InternshipProgram   @relation(fields: [programId], references: [id])
+  cohort    InternshipCohort?   @relation(fields: [cohortId], references: [id], onDelete: SetNull)
   payment   InternshipPayment?
   attempts  AssessmentAttempt[]
   createdAt DateTime            @default(now())
@@ -328,6 +405,7 @@ model InternshipApplication {
 
   @@unique([studentId, programId])
   @@index([studentId])
+  @@index([cohortId])
 }
 
 model InternshipPayment {
@@ -456,12 +534,12 @@ model CourseModule {
   order       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
- 
+
   course    Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
   lessons   Lesson[]
   resources ModuleResource[]
-  progress ModuleProgress[]
- 
+  progress  ModuleProgress[]
+
   @@index([courseId])
 }
 
@@ -473,9 +551,9 @@ model ModuleResource {
   url       String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
- 
+
   module CourseModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
- 
+
   @@index([moduleId])
 }
 
@@ -539,10 +617,10 @@ model ModuleProgress {
   completedAt DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
- 
+
   user   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   module CourseModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
- 
+
   @@unique([userId, moduleId])
   @@index([moduleId])
 }
@@ -746,11 +824,11 @@ model Certificate {
   issuedAt          DateTime @default(now())
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
- 
+
   user       User        @relation(fields: [userId], references: [id], onDelete: Restrict)
   course     Course      @relation(fields: [courseId], references: [id], onDelete: Restrict)
   enrollment Enrollment? @relation(fields: [enrollmentId], references: [id], onDelete: SetNull)
- 
+
   @@unique([userId, courseId])
   @@index([userId])
   @@index([courseId])
@@ -978,10 +1056,10 @@ model InternshipTask {
   maxScore    Int       @default(100)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
- 
+
   module      InternshipModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   submissions TaskSubmission[]
- 
+
   @@index([moduleId])
 }
 
@@ -1161,9 +1239,9 @@ model InternshipGroup {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  program InternshipProgram       @relation(fields: [programId], references: [id], onDelete: Cascade)
-  leader  User?                   @relation("GroupLeader", fields: [leaderId], references: [id], onDelete: SetNull)
-  members InternshipGroupMember[]
+  program  InternshipProgram       @relation(fields: [programId], references: [id], onDelete: Cascade)
+  leader   User?                   @relation("GroupLeader", fields: [leaderId], references: [id], onDelete: SetNull)
+  members  InternshipGroupMember[]
   messages GroupMessage[]
   meetings GroupMeeting[]
 

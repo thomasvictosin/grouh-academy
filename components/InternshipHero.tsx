@@ -51,7 +51,7 @@ const InternshipHero = () => {
               Grouh Academy&apos;s internship program connects Africa&apos;s sharpest emerging talent with hands-on projects, expert mentorship, and a credential that actually opens doors.
             </p>
             <div className="flex flex-wrap gap-4">
-              <a href="#apply" style={{ background: 'linear-gradient(135deg, #4db848, #65d665)', boxShadow: '0 4px 30px rgba(77,184,72,0.4)' }}
+              <a href="/register" style={{ background: 'linear-gradient(135deg, #4db848, #65d665)', boxShadow: '0 4px 30px rgba(77,184,72,0.4)' }}
                 className="font-semibold text-white px-8 py-4 rounded-xl hover:opacity-90 transition-all flex items-center gap-2 font-display">
                 Apply Now <IconArrow />
               </a>

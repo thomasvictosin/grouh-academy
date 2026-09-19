@@ -57,6 +57,17 @@ export async function GET() {
     const latestAttempt = application.attempts[0]
     const assessmentStatus = latestAttempt?.status ?? 'NOT_STARTED'
 
+    const cohorts = await prisma.internshipCohort.findMany({
+      where: { programId: program.id },
+      orderBy: { startDate: 'asc' },
+    })
+
+    const now = new Date()
+    const assignedCohort = application.cohortId ? cohorts.find((cohort) => cohort.id === application.cohortId) ?? null : null
+    const activeCohort = cohorts.find((cohort) => cohort.startDate <= now && cohort.endDate >= now) ?? null
+    const nextCohort = cohorts.find((cohort) => cohort.startDate > now) ?? null
+    const displayCohort = assignedCohort ?? activeCohort ?? nextCohort
+
     const progress = await prisma.internshipProgress.findUnique({
       where: { userId_programId: { userId, programId: program.id } },
     })
@@ -140,11 +151,29 @@ export async function GET() {
       take: 3,
     })
 
+    const cohortStatus = activeCohort ? 'ACTIVE' : nextCohort ? 'UPCOMING' : 'COMPLETED'
+    const countdownDays = displayCohort ? Math.max(0, Math.ceil((displayCohort.startDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))) : null
+    const countdownLabel = displayCohort
+      ? countdownDays === 0
+        ? 'Your internship starts today.'
+        : `Your internship starts in ${countdownDays} day${countdownDays === 1 ? '' : 's'}.`
+      : 'Your internship has concluded.'
+
     return NextResponse.json({
       program: { name: program.name, slug: program.slug },
       paymentStatus,
       assessmentStatus,
       weekLabel: `Week ${weeksElapsed} of ${totalWeeks}`,
+      cohort: displayCohort
+        ? {
+            status: cohortStatus,
+            name: displayCohort.name,
+            startDateLabel: formatDate(displayCohort.startDate),
+            endDateLabel: formatDate(displayCohort.endDate),
+            countdownLabel,
+            description: displayCohort.description,
+          }
+        : null,
       startDateLabel: formatDate(startDate),
       completionDateLabel: formatDate(expectedCompletion),
       progressPercent,

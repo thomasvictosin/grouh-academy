@@ -24,7 +24,7 @@ const Header = () => {
 
           <div className="hidden items-center gap-3 sm:flex">
             <Link
-              href="/apply"
+              href="/register"
               className="inline-flex items-center justify-center rounded-full bg-[#5FBB46] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[#5FBB46]/30 transition hover:bg-[#4aaa3e]"
             >
               Apply Now

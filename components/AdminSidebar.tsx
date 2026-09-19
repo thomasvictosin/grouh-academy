@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import Image from 'next/image'
-import { Award, BarChart3, Bell, BookOpen, CreditCard, FileText, GraduationCap, LayoutDashboard, LogOut, Settings, Users, WalletCards } from 'lucide-react'
+import { Award, Bell, BookOpen, CalendarRange, ClipboardCheck, CreditCard, GraduationCap, LayoutDashboard, LogOut, Settings, UserCircle2, UserRound, Users, WalletCards } from 'lucide-react'
 import type { AdminContext } from '@/lib/admin-context'
 
 const studentItems = [
@@ -14,7 +14,6 @@ const studentItems = [
   { label: 'Payments', href: '/admin/student/payments', icon: CreditCard },
   { label: 'Certificates', href: '/admin/student/certificates', icon: Award },
   { label: 'Instructors', href: '/admin/student/instructors', icon: Users },
-  { label: 'Reports', href: '/admin/student/reports', icon: BarChart3 },
   { label: 'Notifications', href: '/admin/student/notifications', icon: Bell },
   { label: 'Settings', href: '/admin/student/settings', icon: Settings },
 ]
@@ -22,13 +21,15 @@ const studentItems = [
 const internshipItems = [
   { label: 'Dashboard', href: '/admin/internship', icon: LayoutDashboard },
   { label: 'Interns', href: '/admin/internship/interns', icon: Users },
-  { label: 'Applications', href: '/admin/internship/applications', icon: FileText },
+  { label: 'Enrollees', href: '/admin/internship/enrollees', icon: UserRound },
+  { label: 'Cohorts', href: '/admin/internship/cohorts', icon: CalendarRange },
   { label: 'Assessments', href: '/admin/internship/assessments', icon: GraduationCap },
+  { label: 'Tasks', href: '/admin/internship/tasks', icon: ClipboardCheck },
   { label: 'Mentors', href: '/admin/internship/mentors', icon: Users },
   { label: 'Payments', href: '/admin/internship/payments', icon: WalletCards },
-  { label: 'Reports', href: '/admin/internship/reports', icon: BarChart3 },
   { label: 'Notifications', href: '/admin/internship/notifications', icon: Bell },
   { label: 'Settings', href: '/admin/internship/settings', icon: Settings },
+  { label: 'Profile', href: '/admin/internship/profile', icon: UserCircle2 },
 ]
 
 export default function AdminSidebar({ workspace, admin, mobile = false }: { workspace: 'student' | 'internship'; admin: AdminContext | null; mobile?: boolean }) {

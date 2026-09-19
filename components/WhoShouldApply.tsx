@@ -47,7 +47,7 @@ function IconStar() {
             <p className="text-slate-400 leading-relaxed mb-8">
               We don't require perfection — we require <strong className="text-white">drive</strong>. Whether you're fresh out of school, pivoting careers, or purely self-taught, Grouh Academy's internship is built for builders who want to grow.
             </p>
-            <a href="#apply" style={{ color: '#4db848', borderBottom: '1px solid rgba(122, 245, 15, 0.4)' }} className="font-semibold text-sm flex items-center gap-2 w-fit hover:border-orange-400 transition-colors font-display">
+            <a href="/register" style={{ color: '#4db848', borderBottom: '1px solid rgba(122, 245, 15, 0.4)' }} className="font-semibold text-sm flex items-center gap-2 w-fit hover:border-orange-400 transition-colors font-display">
               See if you qualify <IconArrow />
             </a>
           </div>

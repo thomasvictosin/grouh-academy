@@ -74,7 +74,7 @@ export default function RegisterPage() {
     }
 
     if (data.session) {
-      router.push("/student");
+      router.push("/internship/onboarding");
       router.refresh();
       return;
     }
@@ -88,7 +88,7 @@ export default function RegisterPage() {
     const supabase = createSupabaseBrowserClient();
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: `${getSiteUrl()}/auth/callback?next=/student` },
+      options: { redirectTo: `${getSiteUrl()}/auth/callback?next=/internship/onboarding` },
     });
     if (oauthError) setError(oauthError.message);
   };

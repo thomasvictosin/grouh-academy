@@ -11,6 +11,7 @@ type DashboardData = {
   paymentStatus?: string
   assessmentStatus?: string
   weekLabel?: string
+  cohort?: { status: 'ACTIVE' | 'UPCOMING' | 'COMPLETED'; name: string; startDateLabel: string; endDateLabel: string; countdownLabel: string; description: string | null } | null
   startDateLabel?: string
   completionDateLabel?: string
   progressPercent?: number
@@ -89,6 +90,22 @@ export default function InternshipDashboardPage() {
 
         {data.program && (
           <>
+            {data.cohort && (
+              <section className={`rounded-2xl border p-5 shadow-[0_8px_24px_rgba(28,29,82,0.09)] sm:p-6 ${data.cohort.status === 'ACTIVE' ? 'border-emerald-200 bg-emerald-50' : 'border-sky-200 bg-sky-50'}`}>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#1C1D52]">{data.cohort.name}</p>
+                    <h2 className="mt-2 text-lg font-bold text-[#1C1D52]">{data.cohort.countdownLabel}</h2>
+                    <p className="mt-1 text-xs text-slate-600">Cohort starts: {data.cohort.startDateLabel} · Ends: {data.cohort.endDateLabel}</p>
+                  </div>
+                  <span className={`rounded-full px-3 py-1 text-[9px] font-semibold ${data.cohort.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' : 'bg-sky-100 text-sky-700'}`}>
+                    {data.cohort.status === 'ACTIVE' ? 'Active cohort' : data.cohort.status === 'UPCOMING' ? 'Upcoming cohort' : 'Completed cohort'}
+                  </span>
+                </div>
+                {data.cohort.description && <p className="mt-3 text-xs text-slate-600">{data.cohort.description}</p>}
+              </section>
+            )}
+
             <section className="rounded-2xl bg-white p-5 shadow-[0_8px_24px_rgba(28,29,82,0.09)] sm:p-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>

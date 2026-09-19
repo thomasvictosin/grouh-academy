@@ -31,7 +31,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ message: 'This payment does not belong to your account.' }, { status: 403 })
     }
 
-    const tier = amountToTier(payment.amount)
+    const tier = await amountToTier(payment.amount)
     if (!tier) {
       return NextResponse.json({ message: 'Unrecognized payment amount.' }, { status: 400 })
     }

@@ -1,0 +1,30 @@
+model PlatformSettings {
+  id String @id @default("singleton")
+
+  platformName    String  @default("Grouh Academy")
+  supportEmail    String  @default("support@grouhacademy.com")
+  defaultLanguage String  @default("English (US)")
+  timezone        String  @default("GMT+1 (West Africa Time)")
+  maxUploadSizeMb Int     @default(5)
+
+  allowStudentRegistration    Boolean @default(true)
+  enableCourseReviews         Boolean @default(true)
+  autoApproveSubmittedCourses Boolean @default(false)
+  maintenanceMode             Boolean @default(false)
+
+  premiumTier1Amount          Int    @default(100000)
+  premiumTier2Amount          Int    @default(400000)
+  defaultAssessmentPassScore  Int    @default(70)
+  maxGroupSize                Int    @default(12)
+  certificateNumberPrefix     String @default("CERT-INT")
+
+  updatedById String?  @db.Uuid
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  updatedBy User? @relation("PlatformSettingsUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+}
+
+// --- Add this relation field to the existing User model ---
+//
+// updatedPlatformSettings PlatformSettings[] @relation("PlatformSettingsUpdatedBy")

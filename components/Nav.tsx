@@ -92,7 +92,7 @@ const Nav = () => {
 
         <div className="mt-8 border-t border-white/10 pt-6">
           <Link
-            href="/apply"
+            href="/register"
             onClick={() => setIsOpen(false)}
             className="block rounded-full bg-[#5FBB46] px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#4aaa3e]"
           >

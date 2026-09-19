@@ -70,8 +70,8 @@ export default function InternshipPremiumPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tier: activePlan.tier }),
       })
-      const data = await response.json()
-      if (!response.ok || !data.authorization_url) throw new Error(data.error || 'Payment could not be initialized.')
+      const data = await response.json().catch(() => null)
+      if (!response.ok || !data?.authorization_url) throw new Error(data?.error || `Payment could not be initialized (request returned ${response.status}).`)
       window.location.href = data.authorization_url
     } catch (error) {
       setPaymentStatus('error')

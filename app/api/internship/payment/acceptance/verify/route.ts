@@ -56,6 +56,31 @@ export async function GET(request: Request) {
       data: { status: 'PAID', paidAt: new Date() },
     })
 
+    const now = new Date()
+    const activeCohort = await prisma.internshipCohort.findFirst({
+      where: {
+        programId: application.programId,
+        startDate: { lte: now },
+        endDate: { gte: now },
+      },
+      orderBy: { startDate: 'asc' },
+    })
+
+    const nextCohort = await prisma.internshipCohort.findFirst({
+      where: {
+        programId: application.programId,
+        startDate: { gt: now },
+      },
+      orderBy: { startDate: 'asc' },
+    })
+
+    await prisma.internshipApplication.update({
+      where: { id: applicationId },
+      data: {
+        cohortId: activeCohort ? nextCohort?.id ?? application.cohortId ?? null : nextCohort?.id ?? application.cohortId ?? null,
+      },
+    })
+
     return NextResponse.json({ status: 'success' })
   } catch (error) {
     console.error('Failed to verify acceptance fee payment:', error)

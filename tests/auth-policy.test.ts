@@ -6,7 +6,10 @@ import {
   DEVELOPMENT_TEST_ROLES,
   getValidatedDevelopmentRole,
 } from '@/lib/dev-auth'
-import { getAuthorizedHomeRouteForRoles } from '@/lib/supabase/auth'
+import {
+  getAuthorizedHomeRouteForRoles,
+  getInitialStudentRoute,
+} from '@/lib/supabase/auth'
 
 test('each development role is accepted and nothing else is', () => {
   for (const role of DEVELOPMENT_TEST_ROLES) {
@@ -48,4 +51,9 @@ test('authorized home routes follow the documented role priority', () => {
     '/admin/student',
   )
   assert.equal(getAuthorizedHomeRouteForRoles([]), '/student')
+})
+
+test('new student applicants start at onboarding before they reach the internship dashboard', () => {
+  assert.equal(getInitialStudentRoute(false), '/internship/onboarding')
+  assert.equal(getInitialStudentRoute(true), '/internship/dashboard')
 })

@@ -1,11 +1,17 @@
-export const PREMIUM_TIER_AMOUNTS = {
-  TIER_100K: 100000,
-  TIER_400K: 400000,
-} as const
-
-export type PremiumTierKey = keyof typeof PREMIUM_TIER_AMOUNTS
-
-export function amountToTier(amount: number): PremiumTierKey | null {
-  const entry = Object.entries(PREMIUM_TIER_AMOUNTS).find(([, value]) => value === amount)
+import { getPlatformSettings } from '@/lib/platform-settings'
+ 
+export type PremiumTierKey = 'TIER_100K' | 'TIER_400K'
+ 
+export async function getPremiumTierAmounts(): Promise<Record<PremiumTierKey, number>> {
+  const settings = await getPlatformSettings()
+  return {
+    TIER_100K: settings.premiumTier1Amount,
+    TIER_400K: settings.premiumTier2Amount,
+  }
+}
+ 
+export async function amountToTier(amount: number): Promise<PremiumTierKey | null> {
+  const amounts = await getPremiumTierAmounts()
+  const entry = Object.entries(amounts).find(([, value]) => value === amount)
   return entry ? (entry[0] as PremiumTierKey) : null
 }

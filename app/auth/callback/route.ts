@@ -4,7 +4,7 @@ import { createSupabaseServerClient } from '@/lib/supabase/server'
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get('code')
   const next = request.nextUrl.searchParams.get('next')
-  const redirectUrl = new URL(next?.startsWith('/') ? next : '/student', request.url)
+  const redirectUrl = new URL(next?.startsWith('/') ? next : '/internship/onboarding', request.url)
 
   if (code) {
     const supabase = await createSupabaseServerClient()
@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     if (!error) {
       const { data: assurance } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
       if (assurance?.currentLevel === 'aal1' && assurance.nextLevel === 'aal2') {
-        return NextResponse.redirect(new URL(`/auth/mfa?next=${encodeURIComponent(next ?? '/student')}`, request.url))
+        return NextResponse.redirect(new URL(`/auth/mfa?next=${encodeURIComponent(next ?? '/internship/onboarding')}`, request.url))
       }
       return NextResponse.redirect(redirectUrl)
     }

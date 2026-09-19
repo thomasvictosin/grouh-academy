@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  let body: CourseWriteInput
+  let body: CourseWriteInput & { status?: unknown }
 
   try {
     body = (await request.json()) as CourseWriteInput
@@ -94,21 +94,20 @@ export async function POST(request: NextRequest) {
     body.category,
   )
 
-  /*
-   * IMPORTANT:
-   *
-   * Every newly created course starts as DRAFT.
-   *
-   * This applies to both:
-   * - ADMIN
-   * - INSTRUCTOR
-   *
-   * Admin publishing is an explicit action from the course builder.
-   * Instructor submission is an explicit action through /submit.
-   *
-   * We must NOT automatically publish a course simply because
-   * the creator happens to be an administrator.
-   */
+  // A course begins as a draft unless an administrator explicitly selected
+  // Publish in the course builder. This is deliberately not inferred from
+  // the creator role: administrators can still save unfinished drafts.
+  const requestedStatus = body.status === CourseStatus.PUBLISHED
+    ? CourseStatus.PUBLISHED
+    : CourseStatus.DRAFT
+
+  if (requestedStatus === CourseStatus.PUBLISHED && !isAdmin) {
+    return NextResponse.json(
+      { error: 'Only an administrator can publish a course.' },
+      { status: 403 },
+    )
+  }
+
   const course = await prisma.course.create({
     data: {
       title: body.title.trim(),
@@ -117,7 +116,7 @@ export async function POST(request: NextRequest) {
       price: parseCoursePrice(body.price),
       thumbnail: body.thumbnail ?? null,
 
-      status: CourseStatus.DRAFT,
+      status: requestedStatus,
 
       createdById: userId,
 

@@ -1,9 +1,10 @@
 import { getPrisma } from '@/lib/prisma'
-
-const GROUP_CAPACITY = 12
+import { getPlatformSettings } from '@/lib/platform-settings'
 
 export async function ensureGroupMembership(userId: string, programId: string) {
   const prisma = getPrisma()
+  const settings = await getPlatformSettings()
+  const groupCapacity = settings.maxGroupSize
 
   const existingMembership = await prisma.internshipGroupMember.findUnique({
     where: { programId_userId: { programId, userId } },
@@ -27,7 +28,7 @@ export async function ensureGroupMembership(userId: string, programId: string) {
       data: {
         programId,
         number: (groups[groups.length - 1]?.number ?? 0) + 1,
-        capacity: GROUP_CAPACITY,
+        capacity: groupCapacity,
       },
     }))
 

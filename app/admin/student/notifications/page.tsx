@@ -1,32 +1,87 @@
 'use client'
 
-import { Bell, CheckCheck, Info, Search, UserPlus, WalletCards } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { Bell, Info, LoaderCircle, Megaphone, Search, Send, UserPlus, WalletCards } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+
 import AdminShell from '@/components/AdminShell'
 
 type NotificationType = 'All' | 'Students' | 'Payments' | 'System'
-type Notification = { id: number; title: string; body: string; time: string; type: Exclude<NotificationType, 'All'>; unread: boolean }
-
-const initialNotifications: Notification[] = [
-  { id: 1, title: 'New student registration', body: 'Mia Turner created a new student account.', time: '8 minutes ago', type: 'Students', unread: true },
-  { id: 2, title: 'Payment received', body: 'A payment of $249.00 was received from James Wilson.', time: '42 minutes ago', type: 'Payments', unread: true },
-  { id: 3, title: 'Course completion milestone', body: 'Ava Martinez completed Web Development with a perfect score.', time: '2 hours ago', type: 'Students', unread: false },
-  { id: 4, title: 'Certificate queue ready', body: '23 certificates are waiting for approval and issuance.', time: 'Yesterday', type: 'System', unread: false },
-  { id: 5, title: 'Payment gateway connected', body: 'Stripe integration was successfully connected.', time: 'Yesterday', type: 'Payments', unread: false },
-]
+type Activity = { id: string; title: string; body: string; createdAt: string; type: Exclude<NotificationType, 'All'> }
 
 const notificationIcons = { Students: UserPlus, Payments: WalletCards, System: Info }
 
+function timeAgo(dateString: string) {
+  const seconds = Math.max(0, Math.floor((Date.now() - new Date(dateString).getTime()) / 1000))
+  if (seconds < 60) return 'Just now'
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `${minutes} minute${minutes === 1 ? '' : 's'} ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`
+  const days = Math.floor(hours / 24)
+  return days === 1 ? 'Yesterday' : `${days} days ago`
+}
+
 export default function NotificationsPage() {
   const [activeType, setActiveType] = useState<NotificationType>('All')
-  const [notifications, setNotifications] = useState(initialNotifications)
+  const [activities, setActivities] = useState<Activity[]>([])
   const [query, setQuery] = useState('')
-  const visibleNotifications = useMemo(() => notifications.filter((notification) => (activeType === 'All' || notification.type === activeType) && `${notification.title} ${notification.body}`.toLowerCase().includes(query.toLowerCase())), [activeType, notifications, query])
-  const unreadCount = notifications.filter((notification) => notification.unread).length
+  const [title, setTitle] = useState('')
+  const [message, setMessage] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [publishing, setPublishing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
 
-  function markAllRead() {
-    setNotifications((current) => current.map((notification) => ({ ...notification, unread: false })))
+  async function loadActivities() {
+    setLoading(true)
+    try {
+      const response = await fetch('/api/admin/student/notifications', { cache: 'no-store' })
+      const data = await response.json().catch(() => null)
+      if (!response.ok) throw new Error(data?.error ?? 'Unable to load notification activity.')
+      setActivities(data.activities)
+      setError(null)
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Unable to load notification activity.')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  return <AdminShell workspace="student"><div className="mx-auto max-w-[1000px] space-y-5"><header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><h1 className="text-2xl font-semibold text-[#1C1D52] sm:text-3xl">Notifications</h1><p className="mt-2 text-xs text-slate-500">Stay up to date with student activity, payments, and system events.</p></div><button type="button" onClick={markAllRead} className="inline-flex w-fit items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-[10px] font-semibold text-[#1C1D52] shadow-[inset_0_0_0_1px_#d8dee8]"><CheckCheck className="h-3.5 w-3.5" />Mark all as read</button></header><section className="rounded-2xl bg-white p-4 shadow-[0_7px_20px_rgba(28,29,82,0.08)] sm:p-5"><div className="flex flex-col gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between"><div className="flex flex-wrap gap-2">{(['All', 'Students', 'Payments', 'System'] as NotificationType[]).map((type) => <button key={type} type="button" onClick={() => setActiveType(type)} className={`rounded-full px-3 py-2 text-[10px] font-semibold ${activeType === type ? 'bg-blue-500 text-white' : 'text-[#1C1D52] shadow-[inset_0_0_0_1px_#d8dee8]'}`}>{type}{type === 'All' && <span className="ml-2 rounded-full bg-slate-100 px-1.5 py-0.5 text-[8px] text-slate-500">{unreadCount}</span>}</button>)}</div><label className="flex w-full max-w-[240px] items-center gap-2 rounded-lg bg-[#f3f6fb] px-3 py-2.5 text-xs text-slate-400"><Search className="h-3.5 w-3.5" /><span className="sr-only">Search notifications</span><input value={query} onChange={(event) => setQuery(event.target.value)} className="w-full bg-transparent outline-none placeholder:text-slate-400" placeholder="Search notifications..." /></label></div><div className="divide-y divide-slate-100">{visibleNotifications.map((notification) => { const Icon = notificationIcons[notification.type]; return <article key={notification.id} className={`flex gap-3 py-4 ${notification.unread ? 'bg-[#f8fbff]' : ''}`}><span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${notification.type === 'Payments' ? 'bg-[#fff0d8] text-orange-600' : notification.type === 'System' ? 'bg-slate-100 text-slate-500' : 'bg-[#e8faf7] text-teal-600'}`}><Icon className="h-4 w-4" /></span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h2 className="text-xs font-bold text-[#1C1D52]">{notification.title}</h2>{notification.unread && <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />}</div><p className="mt-1 text-[10px] text-slate-500">{notification.body}</p><time className="mt-2 block text-[9px] text-slate-400">{notification.time}</time></div>{notification.unread && <button type="button" onClick={() => setNotifications((current) => current.map((item) => item.id === notification.id ? { ...item, unread: false } : item))} className="self-center text-[9px] font-semibold text-blue-500 hover:text-blue-700">Mark read</button>}</article> })}{visibleNotifications.length === 0 && <div className="py-12 text-center"><Bell className="mx-auto h-7 w-7 text-slate-300" /><p className="mt-2 text-xs text-slate-500">No notifications found.</p></div>}</div></section></div></AdminShell>
+  useEffect(() => {
+    let mounted = true
+    fetch('/api/admin/student/notifications', { cache: 'no-store' })
+      .then(async (response) => {
+        const data = await response.json().catch(() => null)
+        if (!response.ok) throw new Error(data?.error ?? 'Unable to load notification activity.')
+        return data
+      })
+      .then((data) => { if (mounted) { setActivities(data.activities); setError(null) } })
+      .catch((loadError) => { if (mounted) setError(loadError instanceof Error ? loadError.message : 'Unable to load notification activity.') })
+      .finally(() => { if (mounted) setLoading(false) })
+    return () => { mounted = false }
+  }, [])
+
+  const visibleActivities = useMemo(() => activities.filter((activity) => (activeType === 'All' || activity.type === activeType) && `${activity.title} ${activity.body}`.toLowerCase().includes(query.toLowerCase())), [activeType, activities, query])
+
+  async function publishAnnouncement(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setPublishing(true)
+    setError(null)
+    setSuccess(null)
+    try {
+      const response = await fetch('/api/admin/student/notifications', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title, message }) })
+      const data = await response.json().catch(() => null)
+      if (!response.ok) throw new Error(data?.error ?? 'Unable to publish the announcement.')
+      setTitle('')
+      setMessage('')
+      setSuccess(`Announcement sent to ${data.recipientCount} student${data.recipientCount === 1 ? '' : 's'}.`)
+      await loadActivities()
+    } catch (publishError) {
+      setError(publishError instanceof Error ? publishError.message : 'Unable to publish the announcement.')
+    } finally {
+      setPublishing(false)
+    }
+  }
+
+  return <AdminShell workspace="student"><div className="mx-auto max-w-[1000px] space-y-5"><header><h1 className="text-2xl font-semibold text-[#1C1D52] sm:text-3xl">Notifications</h1><p className="mt-2 text-xs text-slate-500">Monitor live learner activity and send announcements directly to students.</p></header><section className="rounded-2xl bg-white p-4 shadow-[0_7px_20px_rgba(28,29,82,0.08)] sm:p-5"><div className="flex items-center gap-2"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#e8f0ff] text-blue-600"><Megaphone className="h-4 w-4" /></span><div><h2 className="text-sm font-bold text-[#1C1D52]">New student announcement</h2><p className="text-[10px] text-slate-500">Every current student will receive this in their notification feed.</p></div></div><form onSubmit={publishAnnouncement} className="mt-4 space-y-3"><label className="block text-[10px] font-semibold text-[#1C1D52]">Title<input required maxLength={160} value={title} onChange={(event) => setTitle(event.target.value)} className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-xs font-normal outline-none focus:border-blue-400" placeholder="e.g. Scheduled platform maintenance" /></label><label className="block text-[10px] font-semibold text-[#1C1D52]">Message<textarea required maxLength={2000} value={message} onChange={(event) => setMessage(event.target.value)} rows={3} className="mt-1.5 w-full resize-y rounded-lg border border-slate-200 px-3 py-2.5 text-xs font-normal outline-none focus:border-blue-400" placeholder="Write the announcement students should see..." /></label><div className="flex flex-wrap items-center gap-3"><button disabled={publishing} type="submit" className="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2.5 text-[10px] font-semibold text-white disabled:opacity-60">{publishing ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}{publishing ? 'Sending...' : 'Send to students'}</button>{success && <p className="text-[10px] font-medium text-emerald-600">{success}</p>}</div></form></section><section className="rounded-2xl bg-white p-4 shadow-[0_7px_20px_rgba(28,29,82,0.08)] sm:p-5"><div className="flex flex-col gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between"><div className="flex flex-wrap gap-2">{(['All', 'Students', 'Payments', 'System'] as NotificationType[]).map((type) => <button key={type} type="button" onClick={() => setActiveType(type)} className={`rounded-full px-3 py-2 text-[10px] font-semibold ${activeType === type ? 'bg-blue-500 text-white' : 'text-[#1C1D52] shadow-[inset_0_0_0_1px_#d8dee8]'}`}>{type}<span className="ml-1.5 opacity-75">{type === 'All' ? activities.length : activities.filter((activity) => activity.type === type).length}</span></button>)}</div><label className="flex w-full max-w-[240px] items-center gap-2 rounded-lg bg-[#f3f6fb] px-3 py-2.5 text-xs text-slate-400"><Search className="h-3.5 w-3.5" /><span className="sr-only">Search activity</span><input value={query} onChange={(event) => setQuery(event.target.value)} className="w-full bg-transparent outline-none placeholder:text-slate-400" placeholder="Search activity..." /></label></div>{error && <p className="py-6 text-center text-xs text-red-600">{error}</p>}{loading ? <div className="flex justify-center py-12"><LoaderCircle className="h-5 w-5 animate-spin text-blue-500" /></div> : !error && <div className="divide-y divide-slate-100">{visibleActivities.map((activity) => { const Icon = notificationIcons[activity.type]; return <article key={activity.id} className="flex gap-3 py-4"><span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${activity.type === 'Payments' ? 'bg-[#fff0d8] text-orange-600' : activity.type === 'System' ? 'bg-slate-100 text-slate-500' : 'bg-[#e8faf7] text-teal-600'}`}><Icon className="h-4 w-4" /></span><div className="min-w-0 flex-1"><h2 className="text-xs font-bold text-[#1C1D52]">{activity.title}</h2><p className="mt-1 text-[10px] text-slate-500">{activity.body}</p><time className="mt-2 block text-[9px] text-slate-400" dateTime={activity.createdAt}>{timeAgo(activity.createdAt)}</time></div></article> })}{visibleActivities.length === 0 && <div className="py-12 text-center"><Bell className="mx-auto h-7 w-7 text-slate-300" /><p className="mt-2 text-xs text-slate-500">No activity found.</p></div>}</div>}</section></div></AdminShell>
 }

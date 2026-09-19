@@ -13,6 +13,10 @@ export default async function StudentLayout({ children }: { children: React.Reac
   const userId = await requireRouteAccess({ requiredRoles: [RoleName.STUDENT] })
 
   const access = await getInternshipAccessStatus(userId)
+  if (!access.hasApplication) {
+    redirect('/internship/onboarding')
+  }
+
   if (access.hasApplication && !access.acceptanceFeePaid) {
     redirect('/internship/dashboard')
   }

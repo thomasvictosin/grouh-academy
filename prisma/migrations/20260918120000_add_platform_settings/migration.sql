@@ -1,0 +1,22 @@
+CREATE TABLE "PlatformSettings" (
+    "id" TEXT NOT NULL DEFAULT 'global',
+    "academyName" TEXT NOT NULL DEFAULT 'Grouh Academy',
+    "supportEmail" TEXT NOT NULL DEFAULT 'support@grouhacademy.com',
+    "platformUrl" TEXT,
+    "timezone" TEXT NOT NULL DEFAULT 'Africa/Lagos',
+    "courseEnrollmentEnabled" BOOLEAN NOT NULL DEFAULT true,
+    "autoApproveCourses" BOOLEAN NOT NULL DEFAULT false,
+    "internshipApplicationsEnabled" BOOLEAN NOT NULL DEFAULT true,
+    "maintenanceMode" BOOLEAN NOT NULL DEFAULT false,
+    "certificateIssuerName" TEXT NOT NULL DEFAULT 'Grouh Academy',
+    "certificatePrefix" TEXT NOT NULL DEFAULT 'GROUH',
+    "certificateMinimumCompletion" INTEGER NOT NULL DEFAULT 100,
+    "automaticCertificateIssue" BOOLEAN NOT NULL DEFAULT true,
+    "notifyAdminOnRegistration" BOOLEAN NOT NULL DEFAULT true,
+    "notifyAdminOnPayment" BOOLEAN NOT NULL DEFAULT true,
+    "notifyStudentOnEnrollment" BOOLEAN NOT NULL DEFAULT true,
+    "notifyStudentOnCertificate" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "PlatformSettings_pkey" PRIMARY KEY ("id")
+);

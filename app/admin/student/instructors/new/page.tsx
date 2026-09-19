@@ -1,8 +1,51 @@
+'use client'
+
 import { ArrowLeft, CheckCircle2, Plus, UserRoundPlus } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import AdminShell from '@/components/AdminShell'
 
 export default function NewInstructorPage() {
+  const router = useRouter()
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const formData = new FormData(event.currentTarget)
+
+    const payload = {
+      name: String(formData.get('name') ?? ''),
+      email: String(formData.get('email') ?? ''),
+      phone: String(formData.get('phone') ?? ''),
+      specialty: String(formData.get('specialty') ?? ''),
+      location: String(formData.get('location') ?? ''),
+      status: String(formData.get('status') ?? 'Active'),
+      qualification: String(formData.get('qualification') ?? ''),
+      bio: String(formData.get('bio') ?? ''),
+    }
+
+    setSaving(true)
+    setError(null)
+
+    const response = await fetch('/api/admin/student/instructors', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+
+    setSaving(false)
+
+    if (!response.ok) {
+      const result = (await response.json().catch(() => null)) as { error?: string } | null
+      setError(result?.error ?? 'Unable to create instructor.')
+      return
+    }
+
+    router.push('/admin/student/instructors')
+  }
+
   return (
     <AdminShell workspace="student">
       <div className="mx-auto max-w-[980px] space-y-5">
@@ -24,7 +67,9 @@ export default function NewInstructorPage() {
           </div>
         </header>
 
-        <form className="space-y-5">
+        {error && <p className="rounded-lg bg-red-50 px-4 py-3 text-xs font-semibold text-red-600">{error}</p>}
+
+        <form onSubmit={handleSubmit} className="space-y-5">
           <section className="rounded-2xl bg-white p-5 shadow-[0_7px_20px_rgba(28,29,82,0.08)] sm:p-6">
             <div className="flex items-center gap-3">
               <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#dceeff] text-blue-600">
@@ -39,59 +84,51 @@ export default function NewInstructorPage() {
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <label className="block text-[10px] font-semibold text-[#1C1D52]">
                 Full Name
-                <input defaultValue="Olivia Nguyen" className="mt-2 h-10 w-full rounded-lg border border-slate-200 px-3 text-xs font-normal outline-none focus:border-blue-400" />
+                <input name="name" placeholder="Olivia Nguyen" className="mt-2 h-10 w-full rounded-lg border border-slate-200 px-3 text-xs font-normal outline-none focus:border-blue-400" />
               </label>
               <label className="block text-[10px] font-semibold text-[#1C1D52]">
                 Specialty
-                <input defaultValue="Product Design" className="mt-2 h-10 w-full rounded-lg border border-slate-200 px-3 text-xs font-normal outline-none focus:border-blue-400" />
+                <input name="specialty" placeholder="Product Design" className="mt-2 h-10 w-full rounded-lg border border-slate-200 px-3 text-xs font-normal outline-none focus:border-blue-400" />
               </label>
               <label className="block text-[10px] font-semibold text-[#1C1D52]">
                 Email Address
-                <input defaultValue="olivia.nguyen@grouh.com" type="email" className="mt-2 h-10 w-full rounded-lg border border-slate-200 px-3 text-xs font-normal outline-none focus:border-blue-400" />
+                <input name="email" type="email" placeholder="olivia.nguyen@grouh.com" className="mt-2 h-10 w-full rounded-lg border border-slate-200 px-3 text-xs font-normal outline-none focus:border-blue-400" />
               </label>
               <label className="block text-[10px] font-semibold text-[#1C1D52]">
                 Phone Number
-                <input defaultValue="+1 (555) 123-8890" className="mt-2 h-10 w-full rounded-lg border border-slate-200 px-3 text-xs font-normal outline-none focus:border-blue-400" />
-              </label>
-            </div>
-          </section>
-
-          <section className="rounded-2xl bg-white p-5 shadow-[0_7px_20px_rgba(28,29,82,0.08)] sm:p-6">
-            <h2 className="text-sm font-bold text-[#1C1D52]">Course Access</h2>
-            <div className="mt-5 grid gap-4 sm:grid-cols-2">
-              <label className="block text-[10px] font-semibold text-[#1C1D52]">
-                Department
-                <input defaultValue="Design & UX" className="mt-2 h-10 w-full rounded-lg border border-slate-200 px-3 text-xs font-normal outline-none focus:border-blue-400" />
+                <input name="phone" placeholder="+1 (555) 123-8890" className="mt-2 h-10 w-full rounded-lg border border-slate-200 px-3 text-xs font-normal outline-none focus:border-blue-400" />
               </label>
               <label className="block text-[10px] font-semibold text-[#1C1D52]">
-                Role
-                <select defaultValue="Course Instructor" className="mt-2 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-xs font-normal outline-none focus:border-blue-400">
-                  <option>Course Instructor</option>
-                  <option>Mentor</option>
-                  <option>Reviewer</option>
-                </select>
-              </label>
-              <label className="block text-[10px] font-semibold text-[#1C1D52]">
-                Location
-                <input defaultValue="Remote" className="mt-2 h-10 w-full rounded-lg border border-slate-200 px-3 text-xs font-normal outline-none focus:border-blue-400" />
+                Qualification
+                <input name="qualification" placeholder="MSc Product Design" className="mt-2 h-10 w-full rounded-lg border border-slate-200 px-3 text-xs font-normal outline-none focus:border-blue-400" />
               </label>
               <label className="block text-[10px] font-semibold text-[#1C1D52]">
                 Status
-                <select defaultValue="Pending" className="mt-2 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-xs font-normal outline-none focus:border-blue-400">
-                  <option>Active</option>
-                  <option>Pending</option>
-                  <option>Suspended</option>
+                <select name="status" defaultValue="Active" className="mt-2 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-xs font-normal outline-none focus:border-blue-400">
+                  <option value="Active">Active</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Suspended">Suspended</option>
                 </select>
+              </label>
+              <label className="block text-[10px] font-semibold text-[#1C1D52] sm:col-span-2">
+                Location
+                <input name="location" placeholder="Remote" className="mt-2 h-10 w-full rounded-lg border border-slate-200 px-3 text-xs font-normal outline-none focus:border-blue-400" />
+              </label>
+              <label className="block text-[10px] font-semibold text-[#1C1D52] sm:col-span-2">
+                Bio
+                <textarea name="bio" rows={4} placeholder="Share a short overview of the instructor's teaching focus..." className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-xs font-normal outline-none focus:border-blue-400" />
               </label>
             </div>
           </section>
 
           <div className="flex flex-wrap justify-end gap-3 rounded-2xl bg-white p-5 shadow-[0_7px_20px_rgba(28,29,82,0.08)] sm:p-6">
-            <Link href="/admin/student/instructors" className="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-[#1C1D52]">Cancel</Link>
-            <Link href="/admin/student/instructors" className="inline-flex items-center gap-2 rounded-lg bg-[#5FBB46] px-4 py-2.5 text-xs font-semibold text-[#14204f] hover:bg-[#4aaa3e]">
-              <Plus className="h-4 w-4" />
-              Invite Instructor
+            <Link href="/admin/student/instructors" className="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-[#1C1D52]">
+              Cancel
             </Link>
+            <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-lg bg-[#5FBB46] px-4 py-2.5 text-xs font-semibold text-[#14204f] hover:bg-[#4aaa3e] disabled:cursor-not-allowed disabled:opacity-70">
+              <Plus className="h-4 w-4" />
+              {saving ? 'Saving...' : 'Invite Instructor'}
+            </button>
           </div>
         </form>
       </div>

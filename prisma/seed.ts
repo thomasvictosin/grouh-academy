@@ -379,6 +379,234 @@ async function ensurePayment(input: {
   });
 }
 
+async function ensureInternshipProgram(input: {
+  slug: string;
+  name: string;
+  duration: string;
+  price: number;
+  assessmentFee: number;
+  description: string;
+  features: string[];
+  requirements: string[];
+  certificateEligibility: string;
+  companyPlacement: boolean;
+  mentorAvailability: boolean;
+  communityAvailability: boolean;
+  status: 'DRAFT' | 'PUBLISHED' | 'DISABLED';
+}) {
+  return prisma.internshipProgram.upsert({
+    where: { slug: input.slug },
+    update: {
+      name: input.name,
+      duration: input.duration,
+      price: input.price,
+      assessmentFee: input.assessmentFee,
+      description: input.description,
+      features: input.features,
+      requirements: input.requirements,
+      certificateEligibility: input.certificateEligibility,
+      companyPlacement: input.companyPlacement,
+      mentorAvailability: input.mentorAvailability,
+      communityAvailability: input.communityAvailability,
+      status: input.status,
+    },
+    create: {
+      slug: input.slug,
+      name: input.name,
+      duration: input.duration,
+      price: input.price,
+      assessmentFee: input.assessmentFee,
+      description: input.description,
+      features: input.features,
+      requirements: input.requirements,
+      certificateEligibility: input.certificateEligibility,
+      companyPlacement: input.companyPlacement,
+      mentorAvailability: input.mentorAvailability,
+      communityAvailability: input.communityAvailability,
+      status: input.status,
+    },
+  });
+}
+
+async function seedInternshipAssessmentData() {
+  const internshipPrograms = await Promise.all([
+    ensureInternshipProgram({
+      slug: 'product-design-internship',
+      name: 'Product Design Internship',
+      duration: '8 weeks',
+      price: 250000,
+      assessmentFee: 25000,
+      description: 'A design-focused internship for product thinking, wireframes, and user research.',
+      features: ['User research labs', 'Portfolio reviews', 'Mentor feedback'],
+      requirements: ['Basic design samples', 'Interest in product thinking'],
+      certificateEligibility: 'Active completion and final portfolio review',
+      companyPlacement: true,
+      mentorAvailability: true,
+      communityAvailability: true,
+      status: 'PUBLISHED',
+    }),
+    ensureInternshipProgram({
+      slug: 'software-development-internship',
+      name: 'Software Development Internship',
+      duration: '10 weeks',
+      price: 350000,
+      assessmentFee: 35000,
+      description: 'An engineering internship focused on frontend, backend, and product delivery fundamentals.',
+      features: ['Live coding labs', 'Capstone project', 'Code review sessions'],
+      requirements: ['Basic programming interest', 'Comfort with written problem solving'],
+      certificateEligibility: 'Pass all project milestones and final assessment',
+      companyPlacement: true,
+      mentorAvailability: true,
+      communityAvailability: true,
+      status: 'PUBLISHED',
+    }),
+  ]);
+
+  const cohortBlueprints = [
+    {
+      slug: 'software-development-november-cohort',
+      name: 'Software Development November Cohort',
+      programSlug: 'software-development-internship',
+      description: 'Core engineering cohort focused on frontend build, backend logic, and capstone delivery.',
+      startDate: new Date('2026-11-09T00:00:00.000Z'),
+      endDate: new Date('2026-12-18T00:00:00.000Z'),
+      status: 'UPCOMING' as const,
+    },
+    {
+      slug: 'product-design-september-cohort',
+      name: 'Product Design September Cohort',
+      programSlug: 'product-design-internship',
+      description: 'Design sprint cohort covering research, UX flows, visual systems, and portfolio polishing.',
+      startDate: new Date('2026-09-14T00:00:00.000Z'),
+      endDate: new Date('2026-10-23T00:00:00.000Z'),
+      status: 'ACTIVE' as const,
+    },
+    {
+      slug: 'software-development-august-cohort',
+      name: 'Software Development August Cohort',
+      programSlug: 'software-development-internship',
+      description: 'Completed engineering cohort for early-stage application building and team-based delivery.',
+      startDate: new Date('2026-08-03T00:00:00.000Z'),
+      endDate: new Date('2026-09-11T00:00:00.000Z'),
+      status: 'COMPLETED' as const,
+    },
+  ] as const;
+
+  for (const blueprint of cohortBlueprints) {
+    const program = internshipPrograms.find((entry) => entry.slug === blueprint.programSlug);
+    if (!program) continue;
+
+    await prisma.internshipCohort.upsert({
+      where: { slug: blueprint.slug },
+      update: {
+        name: blueprint.name,
+        description: blueprint.description,
+        programId: program.id,
+        startDate: blueprint.startDate,
+        endDate: blueprint.endDate,
+        status: blueprint.status,
+      },
+      create: {
+        name: blueprint.name,
+        slug: blueprint.slug,
+        description: blueprint.description,
+        programId: program.id,
+        startDate: blueprint.startDate,
+        endDate: blueprint.endDate,
+        status: blueprint.status,
+      },
+    });
+  }
+
+  const assessmentBlueprints = [
+    {
+      programSlug: 'software-development-internship',
+      title: 'Software Development Entrance Exam',
+      description: 'Select the correct answer for each MCQ. This exam is objective and auto-graded.',
+      passingScore: 70,
+      questions: [
+        {
+          prompt: 'Which JavaScript keyword creates a block-scoped variable?',
+          options: ['var', 'let', 'function', 'const'],
+          correctIndex: 1,
+        },
+        {
+          prompt: 'What does HTML primarily structure?',
+          options: ['Styling', 'Content layout', 'Database queries', 'Server responses'],
+          correctIndex: 1,
+        },
+        {
+          prompt: 'Which of these is a common method for handling async work in JavaScript?',
+          options: ['forEach', 'Promise', 'alert', 'document.write'],
+          correctIndex: 1,
+        },
+      ],
+    },
+    {
+      programSlug: 'product-design-internship',
+      title: 'Product Design Entrance Exam',
+      description: 'Choose the best answer for each multiple-choice design scenario.',
+      passingScore: 70,
+      questions: [
+        {
+          prompt: 'Which activity best supports user-centered design?',
+          options: ['Randomized feature release', 'User interviews and usability testing', 'Long-form documentation only', 'Skipping iteration'],
+          correctIndex: 1,
+        },
+        {
+          prompt: 'A design system is primarily meant to improve:',
+          options: ['Visual consistency and scaling', 'Back-end storage', 'Database indexing', 'Cross-browser security'],
+          correctIndex: 0,
+        },
+        {
+          prompt: 'Which metric best reflects usability?',
+          options: ['Bounce rate', 'Completion rate', 'Weekly payroll', 'Server uptime'],
+          correctIndex: 1,
+        },
+      ],
+    },
+  ] as const;
+
+  for (const blueprint of assessmentBlueprints) {
+    const program = internshipPrograms.find((entry) => entry.slug === blueprint.programSlug);
+    if (!program) continue;
+
+    const assessment = await prisma.internshipAssessment.findFirst({
+      where: { programId: program.id, title: blueprint.title },
+    });
+
+    const targetAssessment = assessment ?? await prisma.internshipAssessment.create({
+      data: {
+        programId: program.id,
+        title: blueprint.title,
+        description: blueprint.description,
+        passingScore: blueprint.passingScore,
+      },
+    });
+
+    await prisma.assessmentQuestion.deleteMany({ where: { assessmentId: targetAssessment.id } });
+
+    for (const [index, question] of blueprint.questions.entries()) {
+      await prisma.assessmentQuestion.create({
+        data: {
+          assessmentId: targetAssessment.id,
+          prompt: question.prompt,
+          order: index,
+          options: {
+            createMany: {
+              data: question.options.map((optionText, optionIndex) => ({
+                optionText,
+                order: optionIndex,
+                isCorrect: optionIndex === question.correctIndex,
+              })),
+            },
+          },
+        },
+      });
+    }
+  }
+}
+
 async function seedDevelopmentData() {
   const now = new Date();
 
@@ -627,6 +855,7 @@ async function main() {
   }
 
   await seedDevelopmentData();
+  await seedInternshipAssessmentData();
 
   console.log('RBAC and development demo data seeded successfully');
 }

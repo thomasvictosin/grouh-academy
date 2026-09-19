@@ -26,6 +26,11 @@ const alertDotStyles = {
   slate: 'bg-slate-400',
 }
 
+function parseWeekNumber(weekLabel: string): number {
+  const match = /\d+/.exec(weekLabel)
+  return match ? Number(match[0]) : 1
+}
+
 export default function TasksPage() {
   const [data, setData] = useState<InternshipTaskListResponse | null>(null)
   const [loading, setLoading] = useState(true)
@@ -45,6 +50,13 @@ export default function TasksPage() {
 
   const allTasks = data?.tasks ?? []
   const visibleDeadlines = taskFilter === 'All' ? allTasks : allTasks.filter((task) => task.kind === taskFilter)
+  const groupedTasks = visibleDeadlines.reduce<Map<string, typeof visibleDeadlines>>((groups, task) => {
+    const key = task.weekLabel || `Week ${task.weekNumber}`
+    const current = groups.get(key) ?? []
+    current.push(task)
+    groups.set(key, current)
+    return groups
+  }, new Map()).entries()
 
   return (
     <InternshipShell>
@@ -128,31 +140,44 @@ export default function TasksPage() {
               </div>
 
               {visibleDeadlines.length > 0 ? (
-                <div className="mt-5 overflow-x-auto">
-                  <table className="w-full min-w-[680px] border-collapse text-left text-[10px]">
-                    <thead>
-                      <tr className="border-b border-slate-300 text-slate-500">
-                        <th className="pb-3 font-semibold">Assignment Name</th>
-                        <th className="pb-3 font-semibold">Type</th>
-                        <th className="pb-3 font-semibold">Due Date</th>
-                        <th className="pb-3 font-semibold">Time Left</th>
-                        <th className="pb-3 font-semibold">Status</th>
-                        <th className="pb-3 font-semibold">Score</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {visibleDeadlines.map((task) => (
-                        <tr key={task.id} className="border-b border-slate-200 text-[#1C1D52]">
-                          <td className="py-4 font-semibold">{task.title}</td>
-                          <td className={`py-4 ${task.kind === 'GROUP' ? 'text-[#5FBB46]' : ''}`}>{task.kind === 'GROUP' ? 'Group' : 'Individual'}</td>
-                          <td className="py-4">{task.dueDateLabel ?? '—'}</td>
-                          <td className={`py-4 ${task.timeLeftLabel === 'Overdue' || task.timeLeftLabel.includes('hour') || task.timeLeftLabel.includes('minute') ? 'font-bold text-red-500' : ''}`}>{task.timeLeftLabel}</td>
-                          <td className="py-4"><span className={`rounded-lg px-2 py-1 text-[9px] font-semibold ${statusStyles[task.tone]}`}>{task.status}</span></td>
-                          <td className="py-4 font-bold">{task.scoreLabel}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="mt-5 space-y-4">
+                  {[...groupedTasks]
+                    .sort(([weekA], [weekB]) => parseWeekNumber(weekA) - parseWeekNumber(weekB))
+                    .map(([weekLabel, weekTasks]) => (
+                      <div key={weekLabel} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <div className="mb-3 flex items-center justify-between gap-3">
+                          <h3 className="text-sm font-bold text-[#1C1D52]">{weekLabel}</h3>
+                          <span className="text-[9px] font-semibold uppercase tracking-[0.08em] text-slate-500">{weekTasks.length} task{weekTasks.length === 1 ? '' : 's'}</span>
+                        </div>
+
+                        <div className="space-y-3">
+                          {weekTasks.map((task) => (
+                            <div key={task.id} className="rounded-xl border border-slate-200 bg-white p-3">
+                              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                  <p className="font-semibold text-[#1C1D52]">{task.title}</p>
+                                  <p className="mt-1 text-[10px] text-slate-500">{task.moduleTitle}</p>
+                                </div>
+                                <span className={`inline-flex w-fit rounded-full px-2 py-1 text-[9px] font-semibold ${task.kind === 'GROUP' ? 'bg-[#e8f7eb] text-[#5FBB46]' : 'bg-[#edf4ff] text-[#3557a5]'}`}>
+                                  {task.kind === 'GROUP' ? 'Group' : 'Individual'}
+                                </span>
+                              </div>
+
+                              <div className="mt-3 grid gap-2 text-[10px] text-slate-500 sm:grid-cols-3">
+                                <span>Due: {task.dueDateLabel ?? 'No due date'}</span>
+                                <span>Time left: {task.timeLeftLabel}</span>
+                                <span>Status: <span className={`rounded-lg px-1.5 py-0.5 font-semibold ${statusStyles[task.tone]}`}>{task.status}</span></span>
+                              </div>
+
+                              <div className="mt-3 flex items-center justify-between text-[10px] text-slate-500">
+                                <span>Score: {task.scoreLabel}</span>
+                                <span>{task.submittedAt ? 'Submitted' : 'Pending submission'}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
                 </div>
               ) : (
                 <p className="mt-5 text-xs text-slate-500">No tasks match this filter yet.</p>

@@ -93,10 +93,10 @@ export default function InternshipShell({ children }: { children: React.ReactNod
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#11132f]/90 px-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
             <LockKeyhole className="mx-auto h-10 w-10 text-[#5FBB46]" />
-            <h2 className="mt-4 text-xl font-bold text-[#1C1D52]">Pay your acceptance fee to continue</h2>
-            <p className="mt-2 text-sm text-slate-500">
-              {status?.programName ? `Your spot in ${status.programName} is` : 'Your internship spot is'} reserved, but full access
-              requires your one-time acceptance fee of{' '}
+            <h2 className="mt-4 text-xl font-bold text-[#1C1D52]">Acceptance fee required to continue</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              Your application has been approved, and you are now ready to begin your internship. To unlock the full internship workspace and continue with your program,
+              please pay your one-time acceptance fee of{' '}
               <strong className="text-[#1C1D52]">{status?.acceptanceFeeAmount ? `₦${status.acceptanceFeeAmount.toLocaleString()}` : 'the acceptance fee'}</strong>.
             </p>
             {payError && <div className="mt-4 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-left text-xs text-red-700"><AlertCircle className="h-4 w-4 shrink-0" /><span>{payError}</span></div>}
@@ -108,7 +108,7 @@ export default function InternshipShell({ children }: { children: React.ReactNod
             >
               {paying ? <><Loader2 className="h-4 w-4 animate-spin" />Connecting to Paystack...</> : 'Pay Acceptance Fee'}
             </button>
-            <p className="mt-4 text-[10px] text-slate-400">This screen will remain until your payment is confirmed.</p>
+            <p className="mt-4 text-[10px] text-slate-400">This screen stays active until your payment is confirmed and your internship workspace is unlocked.</p>
           </div>
         </div>
       )}

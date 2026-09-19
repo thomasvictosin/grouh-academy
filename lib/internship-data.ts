@@ -13,6 +13,9 @@ export type InternshipTaskItem = {
   id: string
   title: string
   kind: 'INDIVIDUAL' | 'GROUP'
+  moduleTitle: string
+  weekLabel: string
+  weekNumber: number
   dueDateLabel: string | null
   timeLeftLabel: string
   status: TaskStatusLabel

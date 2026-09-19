@@ -1,4 +1,5 @@
 import type { CourseDb } from '@/lib/course-data'
+import { getPlatformSettings } from '@/lib/platform-settings'
 
 export type StudentCertificate = {
   id: string
@@ -11,6 +12,7 @@ export type StudentCertificate = {
 }
 
 async function nextCertificateNumber(db: CourseDb): Promise<string> {
+  const settings = await getPlatformSettings()
   const year = new Date().getUTCFullYear()
   const yearStart = new Date(Date.UTC(year, 0, 1))
   const yearEnd = new Date(Date.UTC(year + 1, 0, 1))
@@ -20,7 +22,7 @@ async function nextCertificateNumber(db: CourseDb): Promise<string> {
       where: { issuedAt: { gte: yearStart, lt: yearEnd } },
     })
 
-    const candidate = `${year}-${String(count + 1 + attempt).padStart(5, '0')}`
+    const candidate = `${settings.certificatePrefix}-${year}-${String(count + 1 + attempt).padStart(5, '0')}`
     const existing = await db.certificate.findUnique({ where: { certificateNumber: candidate } })
 
     if (!existing) {
@@ -31,7 +33,7 @@ async function nextCertificateNumber(db: CourseDb): Promise<string> {
   // Sequential numbering collided repeatedly (e.g. concurrent
   // completions racing for the same count). Fall back to something
   // effectively guaranteed unique rather than looping forever.
-  return `${year}-${Date.now().toString(36).toUpperCase()}`
+  return `${settings.certificatePrefix}-${year}-${Date.now().toString(36).toUpperCase()}`
 }
 
 /**

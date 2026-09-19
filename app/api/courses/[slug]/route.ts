@@ -79,3 +79,15 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
   return NextResponse.json(serializeCourse(course))
 }
+
+export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
+  const userId = await getCurrentUserId()
+  if (!userId) return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
+  const { roles } = await getUserRBAC(userId)
+  if (!roles.includes(RoleName.ADMIN)) return NextResponse.json({ error: 'Only an administrator can delete a course.' }, { status: 403 })
+  const { slug } = await params
+  const course = await getCourseBySlug(slug)
+  if (!course) return NextResponse.json({ error: 'Course not found.' }, { status: 404 })
+  await getPrisma().course.delete({ where: { id: course.id } })
+  return new NextResponse(null, { status: 204 })
+}

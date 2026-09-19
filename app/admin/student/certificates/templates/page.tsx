@@ -105,7 +105,7 @@ export default function CertificateTemplatesPage() {
             <div class="meta">
               <div>
                 <p style="margin: 0; font-size: 14px; color: #64748b;">This certifies that</p>
-                <p class="student">Emma Thompson</p>
+                <p class="student">Learner name</p>
                 <div style="height:1px; background:#e5e7eb; margin-top:18px;"></div>
                 <p class="body">Has successfully completed the ${selectedTemplate.name} learning journey and demonstrated the required knowledge, effort, and professionalism throughout the program.</p>
               </div>
@@ -113,8 +113,8 @@ export default function CertificateTemplatesPage() {
               <div class="panel">
                 <div class="list">
                   <div class="list-item"><span>Template</span><strong>${selectedTemplate.name}</strong></div>
-                  <div class="list-item"><span>Issue date</span><strong>2025-02-05</strong></div>
-                  <div class="list-item"><span>Verification code</span><strong>WDB-9204A</strong></div>
+                  <div class="list-item"><span>Issue date</span><strong>Issued on completion</strong></div>
+                  <div class="list-item"><span>Verification code</span><strong>Generated on issue</strong></div>
                 </div>
               </div>
             </div>
@@ -183,11 +183,11 @@ export default function CertificateTemplatesPage() {
 
             <div className="flex flex-wrap gap-2">
               <Link
-                href="/admin/student/certificates/cert-902/edit"
+                href="/admin/student/certificates/new"
                 className="inline-flex items-center gap-2 rounded-lg bg-[#f3f6fb] px-3 py-2 text-[10px] font-semibold text-[#1C1D52] shadow-[inset_0_0_0_1px_#d8dee8]"
               >
                 <Sparkles className="h-3.5 w-3.5" />
-                Customize
+                Issue with this style
               </Link>
               <button
                 type="button"
@@ -221,7 +221,7 @@ export default function CertificateTemplatesPage() {
             <div className="mt-6 grid gap-6 md:grid-cols-[1.1fr_0.9fr]">
               <div>
                 <p className="text-sm text-slate-500">This certifies that</p>
-                <p className="mt-3 text-2xl font-semibold text-[#1C1D52]">Emma Thompson</p>
+                <p className="mt-3 text-2xl font-semibold text-[#1C1D52]">Learner name</p>
                 <div className="mt-4 h-px w-full bg-slate-200" />
 
                 <p className="mt-4 text-sm leading-6 text-slate-600">
@@ -246,11 +246,11 @@ export default function CertificateTemplatesPage() {
                   </div>
                   <div className="flex items-center justify-between gap-3 rounded-xl bg-white p-3">
                     <span>Issue date</span>
-                    <span className="font-semibold text-[#1C1D52]">2025-02-05</span>
+                    <span className="font-semibold text-[#1C1D52]">Issued on completion</span>
                   </div>
                   <div className="flex items-center justify-between gap-3 rounded-xl bg-white p-3">
                     <span>Verification code</span>
-                    <span className="font-semibold text-[#1C1D52]">WDB-9204A</span>
+                    <span className="font-semibold text-[#1C1D52]">Generated on issue</span>
                   </div>
                 </div>
               </div>

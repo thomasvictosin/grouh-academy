@@ -34,6 +34,22 @@ function timeAgo(date: Date): string {
   return `${days} day${days === 1 ? '' : 's'} ago`
 }
 
+function parseWeekNumber(title: string | null): number {
+  if (!title) return 1
+  const match = /week\s*(\d+)/i.exec(title)
+  if (match) return Number(match[1])
+  const numericMatch = /\d+/.exec(title)
+  return numericMatch ? Number(numericMatch[0]) : 1
+}
+
+function parseWeekLabel(title: string | null): string {
+  if (!title) return 'Week 1'
+  const match = /week\s*(\d+)/i.exec(title)
+  if (match) return `Week ${match[1]}`
+  const numericMatch = /\d+/.exec(title)
+  return numericMatch ? `Week ${numericMatch[0]}` : 'Week 1'
+}
+
 function notificationTone(type: NotificationType): InternshipAlert['tone'] {
   switch (type) {
     case NotificationType.ERROR:
@@ -91,8 +107,8 @@ export async function GET() {
   let activeIndividual = 0
   let activeGroup = 0
 
-  for (const module of modules) {
-    for (const task of module.tasks) {
+  for (const programModule of modules) {
+    for (const task of programModule.tasks) {
       // @@unique([taskId, userId]) guarantees at most one row here.
       const submission = task.submissions[0]
       const isPastDue = Boolean(task.dueDate && task.dueDate.getTime() < now.getTime())
@@ -152,11 +168,17 @@ export async function GET() {
 
       const scoreLabel =
         submission?.score != null ? `${submission.score}/${task.maxScore} marks` : `${task.maxScore} marks`
+      const moduleTitle = programModule.title || 'General'
+      const weekLabel = parseWeekLabel(moduleTitle)
+      const weekNumber = parseWeekNumber(moduleTitle)
 
       tasks.push({
         id: task.id,
         title: task.title,
         kind: task.kind,
+        moduleTitle,
+        weekLabel,
+        weekNumber,
         dueDateLabel: formatDueDate(task.dueDate),
         timeLeftLabel: formatTimeLeft(task.dueDate, isResolved),
         status,
@@ -170,10 +192,10 @@ export async function GET() {
   }
 
   tasks.sort((a, b) => {
-    // Tasks with a due date first (soonest first), undated tasks last.
+    if (a.weekNumber !== b.weekNumber) return a.weekNumber - b.weekNumber
     if (a.dueDateLabel && !b.dueDateLabel) return -1
     if (!a.dueDateLabel && b.dueDateLabel) return 1
-    return 0
+    return a.title.localeCompare(b.title)
   })
 
   const notifications = await prisma.notification.findMany({

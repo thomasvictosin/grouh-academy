@@ -1,7 +1,16 @@
 import React from 'react'
 
-const HowItWorks = () => {
+function Label({ children }: { children: string }) {
+  return (
+    <div className="mb-4 inline-flex items-center gap-2">
+      <div style={{ background: 'linear-gradient(90deg, #4db848, #65d665)', height: '2px', width: '24px' }} />
+      <span style={{ color: '#4db848' }} className="font-display text-xs font-semibold uppercase tracking-widest">{children}</span>
+      <div style={{ background: 'linear-gradient(90deg, #4db848, #65d665)', height: '2px', width: '24px' }} />
+    </div>
+  )
+}
 
+const HowItWorks = () => {
   const steps = [
     { n: '01', title: 'Browse & Choose a Track', desc: 'Explore Software Dev, Digital Marketing, or UI/UX Design. Pick the path that matches your goals and current skills.' },
     { n: '02', title: 'Complete the Application', desc: 'Fill out our concise online application. Tell us about your background, motivations, and what you want to build.' },
@@ -10,16 +19,6 @@ const HowItWorks = () => {
     { n: '05', title: 'Onboard & Kick Off', desc: 'Join your cohort, meet your mentor, and receive your first project brief. The real work starts here.' },
     { n: '06', title: 'Graduate & Get Certified', desc: 'Complete deliverables, receive a Grouh Academy certificate, and gain a portfolio-ready case study.' },
   ]
-
-  function Label({ children }: { children: string }) {
-  return (
-    <div className="inline-flex items-center gap-2 mb-4">
-      <div style={{ background: 'linear-gradient(90deg, #4db848, #65d665)', height: '2px', width: '24px' }} />
-      <span style={{ color: '#4db848' }} className="text-xs font-semibold tracking-widest uppercase font-display">{children}</span>
-      <div style={{ background: 'linear-gradient(90deg, #4db848, #65d665)', height: '2px', width: '24px' }} />
-    </div>
-  )
-}
 
   return (
     <section className="py-24" id="how-it-works" style={{ background: '#ffffff' }}>

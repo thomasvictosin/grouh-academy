@@ -15,20 +15,22 @@ import {
   WalletCards,
 } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 const navItems = [
   { label: 'Dashboard', href: '/instructor', icon: LayoutGrid },
   { label: 'My Courses', href: '/instructor/courses', icon: BookOpen },
   { label: 'Students', href: '/instructor/students', icon: Users },
-  { label: 'Quizzes', href: '/instructor/quizzes', icon: FileQuestion },
-  { label: 'Assignments', href: '/instructor/assignments', icon: GraduationCap },
-  { label: 'Revenue', href: '/instructor/revenue', icon: WalletCards },
-  {
+  /*{ label: 'Quizzes', href: '/instructor/quizzes', icon: FileQuestion },*/
+  /*{ label: 'Assignments', href: '/instructor/assignments', icon: GraduationCap },*/
+  /*{ label: 'Revenue', href: '/instructor/revenue', icon: WalletCards },*/
+  /*{
     label: 'Questions & Answers',
     href: '/instructor/questions',
     icon: MessageCircleQuestion,
-  },
+  },*/
   { label: 'Analytics', href: '/instructor/analytics', icon: BarChart3 },
   { label: 'Notifications', href: '/instructor/notifications', icon: Bell },
   { label: 'Profile', href: '/instructor/profile', icon: UserRound },
@@ -37,16 +39,29 @@ const navItems = [
 
 interface InstructorSidebarProps {
   name?: string
+  avatarUrl?: string
   onNavigate?: () => void
 }
 
 export default function InstructorSidebar({
   name,
+  avatarUrl,
   onNavigate,
 }: InstructorSidebarProps) {
   const pathname = usePathname() || '/instructor'
+  const [profile, setProfile] = useState<{ name: string | null; avatarUrl: string | null }>({ name: null, avatarUrl: null })
 
-  const instructorName = name || 'Sarah Johnson'
+  useEffect(() => {
+    fetch('/api/instructor/profile', { cache: 'no-store' })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (data) setProfile({ name: data.name ?? null, avatarUrl: data.avatarUrl ?? null })
+      })
+      .catch((error) => console.error('Failed to load instructor sidebar profile:', error))
+  }, [])
+
+  const instructorName = name || profile.name || 'Instructor'
+  const instructorAvatarUrl = avatarUrl || profile.avatarUrl || '/avatar-placeholder.png'
 
   return (
     <div className="flex h-full w-full flex-col rounded-[28px] bg-[#1C1D52] px-4 py-6 text-white shadow-[0_12px_40px_rgba(28,29,82,0.18)] sm:py-8">
@@ -54,9 +69,12 @@ export default function InstructorSidebar({
       {/* Profile */}
       <div className="px-2 text-center">
         <div className="mb-4 flex justify-center">
-          <img
-            src="/avatar-placeholder.png"
+          <Image
+            src={instructorAvatarUrl}
             alt={`${instructorName} avatar`}
+            width={88}
+            height={88}
+            unoptimized
             className="h-[88px] w-[88px] rounded-full object-cover"
           />
         </div>

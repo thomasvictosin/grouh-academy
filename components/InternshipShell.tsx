@@ -1,12 +1,10 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import InternshipSidebar from './InternshipSidebar'
 import StudentHeader from './StudentHeader'
 import { Menu, X, LockKeyhole, Loader2, AlertCircle } from 'lucide-react'
-
-const POPUP_DELAY_MS = 25000
 
 // Routes reachable before the acceptance fee is paid — the onboarding →
 // assessment → results funnel (Phase 2 builds these pages) plus the
@@ -25,13 +23,12 @@ export default function InternshipShell({ children }: { children: React.ReactNod
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [status, setStatus] = useState<AccessStatus | null>(null)
   const [loadingStatus, setLoadingStatus] = useState(true)
-  const [showPaywall, setShowPaywall] = useState(false)
   const [paying, setPaying] = useState(false)
   const [payError, setPayError] = useState('')
   const pathname = usePathname() || '/internship/dashboard'
-  const popupTimer = useRef<number | null>(null)
 
   const isExemptRoute = EXEMPT_PREFIXES.some((prefix) => pathname.startsWith(prefix))
+  const showPaywall = !isExemptRoute && Boolean(status?.hasApplication) && !status?.acceptanceFeePaid
 
   useEffect(() => {
     fetch('/api/internship/access-status')
@@ -39,20 +36,6 @@ export default function InternshipShell({ children }: { children: React.ReactNod
       .then((data: AccessStatus | null) => setStatus(data))
       .finally(() => setLoadingStatus(false))
   }, [])
-
-  useEffect(() => {
-    if (popupTimer.current) window.clearTimeout(popupTimer.current)
-    setShowPaywall(false)
-
-    if (isExemptRoute || !status?.hasApplication || status.acceptanceFeePaid) {
-      return
-    }
-
-    popupTimer.current = window.setTimeout(() => setShowPaywall(true), POPUP_DELAY_MS)
-    return () => {
-      if (popupTimer.current) window.clearTimeout(popupTimer.current)
-    }
-  }, [status, isExemptRoute, pathname])
 
   async function payAcceptanceFee() {
     setPaying(true)

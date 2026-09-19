@@ -34,8 +34,8 @@ const page = () => {
                 5,000+ students already learning
               </span>
 
-              <h1 className="mt-8 text-5xl font-bold tracking-tight text-white sm:text-6xl">
-                Master the <span className="text-[#5FBB46]">Skills</span> of Tomorrow, Today.
+              <h1 className="hero-title mt-8 text-5xl font-bold tracking-tight text-white sm:text-6xl">
+                Become Job-Ready With Our <span className="text-[#5FBB46]">Internship</span>.
               </h1>
 
               <p className="mt-6 max-w-xl text-lg leading-8 text-white/75">
@@ -58,7 +58,7 @@ const page = () => {
               </div>
             </div>
 
-            <div className="grid gap-5">
+           {/* <div className="grid gap-5">
               <div
                 className="rounded-[2rem] border border-white/10 bg-[#ffffff]/10 p-6 shadow-2xl shadow-slate-950/30 backdrop-blur-xl opacity-0 animate-slide-in-up"
                 style={{ animationDelay: "0.15s" }}
@@ -101,7 +101,7 @@ const page = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </div>*/}
           </div>
 
           {/*<div className="mt-12 rounded-4xl border border-white/10 bg-white shadow-2xl shadow-slate-950/20  max-w-xl align-center backdrop-blur-xl">

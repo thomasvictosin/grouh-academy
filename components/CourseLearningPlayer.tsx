@@ -76,18 +76,18 @@ export default function CourseLearningPlayer({
   const currentTimeRef = useRef(0)
 
   const modules = course.modules
-  const module = modules[selectedModule]
-  const hasLessons = module.lessons.length > 0
-  const lesson = hasLessons ? module.lessons[selectedLesson] : undefined
-  const hasModuleContent = Boolean(module.videoUrl || module.content || module.resources.length)
-  const title = lesson ? lesson.title : module.title
-  const mediaUrl = lesson ? lesson.videoUrl : hasModuleContent ? module.videoUrl : null
-  const content = lesson ? lesson.content : hasModuleContent ? module.content : null
-  const resources = lesson ? lesson.resources : hasModuleContent ? module.resources : []
+  const currentModule = modules[selectedModule]
+  const hasLessons = currentModule.lessons.length > 0
+  const lesson = hasLessons ? currentModule.lessons[selectedLesson] : undefined
+  const hasModuleContent = Boolean(currentModule.videoUrl || currentModule.content || currentModule.resources.length)
+  const title = lesson ? lesson.title : currentModule.title
+  const mediaUrl = lesson ? lesson.videoUrl : hasModuleContent ? currentModule.videoUrl : null
+  const content = lesson ? lesson.content : hasModuleContent ? currentModule.content : null
+  const resources = lesson ? lesson.resources : hasModuleContent ? currentModule.resources : []
   const isLessonComplete = lesson ? completedLessonIds.has(lesson.id) : false
   const mediaKey = `${selectedModule}-${selectedLesson}`
 
-  const isLastLesson = selectedModule === modules.length - 1 && (!hasLessons || selectedLesson === module.lessons.length - 1)
+  const isLastLesson = selectedModule === modules.length - 1 && (!hasLessons || selectedLesson === currentModule.lessons.length - 1)
 
   useEffect(() => {
     if (playingMedia !== mediaKey) return
@@ -128,7 +128,7 @@ export default function CourseLearningPlayer({
   }
 
   const goNext = () => {
-    if (hasLessons && selectedLesson < module.lessons.length - 1) {
+    if (hasLessons && selectedLesson < currentModule.lessons.length - 1) {
       selectLesson(selectedLesson + 1)
       return
     }
@@ -213,9 +213,9 @@ export default function CourseLearningPlayer({
 
         <main className="min-w-0 bg-white">
           <div className="mx-auto max-w-[850px] px-5 py-6 sm:px-8 sm:py-8">
-            <div className="flex flex-wrap items-center gap-2 text-[10px] font-semibold text-slate-500"><span>Module {selectedModule + 1}</span><span>·</span><span>{hasLessons ? `Lesson ${selectedLesson + 1} of ${module.lessons.length}` : 'Module content'}</span></div>
+            <div className="flex flex-wrap items-center gap-2 text-[10px] font-semibold text-slate-500"><span>Module {selectedModule + 1}</span><span>·</span><span>{hasLessons ? `Lesson ${selectedLesson + 1} of ${currentModule.lessons.length}` : 'Module content'}</span></div>
             <h1 className="mt-3 text-2xl font-bold text-[#1C1D52] sm:text-3xl">{title}</h1>
-            {module.description && <p className="mt-2 text-sm leading-6 text-slate-500">{module.description}</p>}
+            {currentModule.description && <p className="mt-2 text-sm leading-6 text-slate-500">{currentModule.description}</p>}
 
             {!hasLessons && !hasModuleContent ? (
               <div className="mt-6 flex aspect-video items-center justify-center rounded-xl border border-dashed border-slate-300 bg-[#f8fbff]"><div className="text-center"><Video className="mx-auto h-7 w-7 text-blue-500" /><p className="mt-3 text-xs font-semibold text-[#1C1D52]">No lessons in this module yet</p><p className="mt-1 text-[10px] text-slate-500">Check back once the instructor adds content here.</p></div></div>

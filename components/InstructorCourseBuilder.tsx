@@ -16,6 +16,7 @@ import {
   Trash2,
   Upload,
 } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -297,7 +298,7 @@ export default function InstructorCourseBuilder({
     moduleId: string,
     lessonId: string,
     key: keyof Lesson,
-    value: any,
+    value: Lesson[keyof Lesson],
   ) => {
     setModules((items) =>
       items.map((item) =>
@@ -1003,7 +1004,7 @@ function BuilderCurriculum({
     moduleId: string,
     lessonId: string,
     key: keyof Lesson,
-    value: any,
+    value: Lesson[keyof Lesson],
   ) => void
   addResourceToLesson: (moduleId: string, lessonId: string) => void
   updateLessonResource: (
@@ -1690,9 +1691,11 @@ function ImageUploadInput({
 
       {value && (
         <div className="mt-3">
-          <img
+          <Image
             src={value}
             alt="Thumbnail preview"
+            width={128}
+            height={80}
             className="h-20 w-32 rounded-lg border border-slate-200 object-cover"
           />
         </div>

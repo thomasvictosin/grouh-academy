@@ -1,25 +1,23 @@
 "use client"
 
 import React, { useEffect, useState } from 'react'
-import { Bell, ChevronDown, Search } from 'lucide-react'
+import { Bell, Search } from 'lucide-react'
 import Image from 'next/image'
 import logo from '../public/logo.png'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
 type HeaderProfile = { name: string | null; avatarUrl: string | null }
 
 export default function InstructorHeader() {
   const [showSearch, setShowSearch] = useState(false)
-  const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false)
   const [profile, setProfile] = useState<HeaderProfile>({ name: null, avatarUrl: null })
   const [unreadCount, setUnreadCount] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
-  const pathname = usePathname() || '/'
   const router = useRouter()
   
   useEffect(() => {
-    fetch('/api/student/profile', { cache: 'no-store' })
+    fetch('/api/instructor/profile', { cache: 'no-store' })
       .then((response) => (response.ok ? response.json() : null))
       .then((data) => {
         if (data) setProfile({ name: data.name ?? null, avatarUrl: data.avatarUrl ?? null })
@@ -41,7 +39,7 @@ export default function InstructorHeader() {
     setShowSearch(false)
   }
 
-  const displayName = profile.name || 'Student'
+  const displayName = profile.name || 'Instructor'
   const avatarSrc = profile.avatarUrl || '/avatar-placeholder.png'
 
   return (
@@ -92,9 +90,12 @@ export default function InstructorHeader() {
             )}
           </Link>
 
-          <img
+          <Image
             src={avatarSrc}
             alt={`${displayName} avatar`}
+            width={36}
+            height={36}
+            unoptimized
             className="h-9 w-9 flex-shrink-0 rounded-full object-cover"
           />
         </div>

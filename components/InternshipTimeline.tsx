@@ -68,7 +68,7 @@ const InternshipTimeline = () => {
             <div className="w-8 h-px" style={{ background: '#4db848' }} />
           </div>
           <h2 className="font-display font-black text-white" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', letterSpacing: '-0.02em' }}>Program Timeline</h2>
-          <p className="text-slate-400 mt-4 max-w-xl mx-auto">Internships run in rolling cohorts — there's always an upcoming start date.</p>
+          <p className="text-slate-400 mt-4 max-w-xl mx-auto">Internships run in rolling cohorts — there is always an upcoming start date.</p>
         </div>
 
         <div className="relative">

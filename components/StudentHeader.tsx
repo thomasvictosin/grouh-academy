@@ -77,7 +77,7 @@ export default function StudentHeader() {
               <div role="menu" className="absolute right-0 top-full z-50 mt-2 w-48 rounded-xl bg-white p-1.5 shadow-[0_10px_28px_rgba(28,29,82,0.16)]">
                 <Link href="/student" role="menuitem" onClick={() => setShowWorkspaceMenu(false)} className={`block rounded-lg px-3 py-2 text-xs font-semibold ${!isInternshipWorkspace && !isMentorWorkspace ? 'bg-[#e8f7eb] text-[#397d3a]' : 'text-[#1C1D52] hover:bg-slate-50'}`}>Student Workspace</Link>
                 <Link href="/internship/enroll" role="menuitem" onClick={() => setShowWorkspaceMenu(false)} className={`mt-1 block rounded-lg px-3 py-2 text-xs font-semibold ${isInternshipWorkspace ? 'bg-[#e8f7eb] text-[#397d3a]' : 'text-[#1C1D52] hover:bg-slate-50'}`}>Internship Workspace</Link>
-                <Link href="/mentor" role="menuitem" onClick={() => setShowWorkspaceMenu(false)} className={`mt-1 block rounded-lg px-3 py-2 text-xs font-semibold ${isMentorWorkspace ? 'bg-[#e8f7eb] text-[#397d3a]' : 'text-[#1C1D52] hover:bg-slate-50'}`}>Mentor Workspace</Link>
+                {/*<Link href="/mentor" role="menuitem" onClick={() => setShowWorkspaceMenu(false)} className={`mt-1 block rounded-lg px-3 py-2 text-xs font-semibold ${isMentorWorkspace ? 'bg-[#e8f7eb] text-[#397d3a]' : 'text-[#1C1D52] hover:bg-slate-50'}`}>Mentor Workspace</Link>*/}
               </div>
             )}
           </div>
